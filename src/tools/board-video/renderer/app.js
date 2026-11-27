@@ -7,7 +7,7 @@
     light: '#454c58', dark: '#1f242d', frame: '#2a303a', edge: '#4a525e',
     last: 'rgba(241,139,66,.4)', arrow: '#ffc36b',
   };
-  const BOARD = { x: 72, y: 470, size: 936 };
+  const BOARD = { x: 72, y: 170, size: 936 };
   const SQ = BOARD.size / 8;
   const TIMING = { holdSec: 0.6, slideSec: 0.3, outroSec: 2 };
   const MIME = 'video/mp4;codecs=avc1';
@@ -65,9 +65,24 @@
     ctx.closePath(); ctx.fill();
     ctx.restore();
   }
+  // Coordenadas pequeñas dentro de las casillas del borde (como Lichess); siguen la orientación.
+  function coords() {
+    const flip = $('orient').value === 'b', font = `700 24px ${FONT}`;
+    const tone = (f, r) => ((f + r) % 2 ? C.dark : C.light); // contrasta con el color de la casilla
+    ctx.save(); ctx.globalAlpha = 0.85;
+    for (let i = 0; i < 8; i++) {
+      const file = flip ? 7 - i : i, rank = flip ? i : 7 - i; // columna i del borde inferior, fila i del borde izquierdo
+      const [fx, fy] = xy('abcdefgh'[file] + (flip ? 8 : 1));
+      text('abcdefgh'[file], fx + SQ - 10, fy + SQ - 12, font, tone(file, flip ? 7 : 0), 'right');
+      const [rx, ry] = xy((flip ? 'h' : 'a') + (rank + 1));
+      text(String(rank + 1), rx + 10, ry + 28, font, tone(flip ? 7 : 0, rank), 'left');
+    }
+    ctx.restore();
+  }
   function players() {
     const h = game.headers, side = (n, e) => (n || '') + (e ? ` (${e})` : '');
-    return h.white || h.black ? `${side(h.white, h.whiteElo)} – ${side(h.black, h.blackElo)}` : '';
+    const known = (n) => n && n !== '?';
+    return known(h.white) || known(h.black) ? `${side(h.white, h.whiteElo)} – ${side(h.black, h.blackElo)}` : '';
   }
   function moveLabel(i) { // número de jugada según la posición previa (sirve también con FEN inicial)
     const [, turn, , , , num] = fens[i].split(' ');
@@ -100,8 +115,8 @@
   }
   function comment(str) {
     if (!str) return;
-    const { size, lines } = wrap(str, W - 160, [[42, 3], [36, 3], [30, 4]]);
-    lines.forEach((l, i) => text(l, W / 2, BOARD.y + BOARD.size + 218 + i * size * 1.3, `500 ${size}px ${FONT}`, C.text));
+    const { size, lines } = wrap(str, W - 160, [[42, 10], [38, 11], [34, 12]]);
+    lines.forEach((l, i) => text(l, 80, BOARD.y + BOARD.size + 186 + i * size * 1.3, `500 ${size}px ${FONT}`, C.text, 'left'));
   }
 
   function draw(t) {
@@ -110,8 +125,7 @@
     ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
 
     // cabecera
-    if (sig) text(sig, W / 2, 230, `800 76px ${FONT}`, C.text);
-    if (who) text(who, W / 2, sig ? 320 : 280, `500 38px ${FONT}`, C.muted);
+    if (who) text(who, W / 2, 105, `500 34px ${FONT}`, C.muted);
 
     // tablero
     const move = fr.phase === 'moves' ? game.moves[fr.ply - 1] : null;
@@ -136,6 +150,7 @@
     const moving = sliding ? pos[move.from] : null;
     if (sliding) delete pos[move.from];
     for (const sq in pos) { const [x, y] = xy(sq); ctx.drawImage(pieces[pos[sq]], x, y, SQ, SQ); }
+    coords();
     if (move) arrow(move.from, move.to);
     if (moving) {
       const [x0, y0] = xy(move.from), [x1, y1] = xy(move.to);
@@ -144,9 +159,8 @@
     }
 
     // jugada en curso y marca
-    if (move) text(moveLabel(fr.ply - 1), W / 2, BOARD.y + BOARD.size + 120, `700 56px ${FONT}`, C.text);
+    if (move) text(moveLabel(fr.ply - 1), 80, BOARD.y + BOARD.size + 100, `700 56px ${FONT}`, C.text, 'left');
     comment(move ? move.comment : fr.phase === 'hold' && o.startPly === 0 ? game.intro : '');
-    brand(1800, 54);
 
     // tarjeta final
     if (fr.phase === 'outro') {
