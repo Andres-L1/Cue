@@ -21,14 +21,16 @@ Lee tu guion mirando a cámara. Se abre en una ventana que se queda **encima de 
 
 ---
 
-## Cómo instalarlo
+## Descargar
 
-1. Entra en la sección **Releases** de esta página.
-2. Descarga el archivo de tu ordenador:
-   - **Windows:** el archivo `.exe`
-   - **Mac:** el archivo `.dmg`
-   - **Linux:** el archivo `.AppImage`
-3. Ábrelo y sigue los pasos.
+| Tu ordenador | Descarga |
+|---|---|
+| **Windows** | [Descargar para Windows (.exe)](https://github.com/Andres-L1/Cue/releases/latest/download/Chedex-Launcher-Windows.exe) |
+| **Mac** (chip Apple: M1, M2, M3…) | [Descargar para Mac (.dmg)](https://github.com/Andres-L1/Cue/releases/latest/download/Chedex-Launcher-Mac-arm64.dmg) |
+| **Mac** (Intel) | [Descargar para Mac Intel (.dmg)](https://github.com/Andres-L1/Cue/releases/latest/download/Chedex-Launcher-Mac-x64.dmg) |
+| **Linux** | [Descargar para Linux (.AppImage)](https://github.com/Andres-L1/Cue/releases/latest/download/Chedex-Launcher-Linux.AppImage) |
+
+Ábrelo y sigue los pasos. ¿No sabes qué Mac tienes? Menú  > *Acerca de este Mac*.
 
 La primera vez, Windows o Mac pueden mostrar un aviso de seguridad porque la aplicación aún es nueva. Puedes continuar: es normal.
 

@@ -38,3 +38,9 @@ La app instalada busca versiones en las Releases de GitHub al abrirse y cada 4 h
 - El repositorio debe ser público.
 - Se actualizan solos Windows y Linux (`.AppImage`). El `.deb` no.
 - En Mac exige app firmada y notarizada; los instaladores aún no van firmados, y Windows/macOS muestran un aviso la primera vez.
+
+## Nombres de los archivos
+
+Los instaladores tienen nombre fijo (sin versión) para que los enlaces del README, del tipo `releases/latest/download/<archivo>`, no cambien nunca:
+`Chedex-Launcher-Windows.exe`, `Chedex-Launcher-Mac-arm64.dmg`, `Chedex-Launcher-Mac-x64.dmg`, `Chedex-Launcher-Linux.AppImage`, `Chedex-Launcher-Linux.deb`.
+Los enlaces solo funcionan cuando existe al menos una Release publicada con etiqueta `v*`. Si cambias algún nombre en `package.json`, actualiza el README.
