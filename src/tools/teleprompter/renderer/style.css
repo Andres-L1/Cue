@@ -5,12 +5,7 @@
 /* ---------- Editor ---------- */
 #editor { display: flex; flex-direction: column; padding: 22px 40px 26px; gap: 14px; }
 .brand { display: flex; align-items: center; gap: 12px; }
-.logo {
-  display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px;
-  background: linear-gradient(145deg, #1d1f24, #0f1013); border: 1px solid var(--line);
-  color: var(--orange); font-weight: 800; font-size: 22px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.5);
-}
+.logo { width: 38px; height: 38px; display: block; filter: drop-shadow(0 6px 14px rgba(0,0,0,.5)); }
 .wordmark { font-weight: 800; font-size: 24px; letter-spacing: -.03em; }
 .wordmark em { font-style: normal; color: var(--orange); }
 .eyebrow {

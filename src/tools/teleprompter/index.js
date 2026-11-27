@@ -34,7 +34,7 @@ function open() {
 
   win = new BrowserWindow({
     width: 960, height: 680, minWidth: 520, minHeight: 420,
-    backgroundColor: '#0a0a0b', title: 'Chedex · Teleprompter', autoHideMenuBar: true,
+    backgroundColor: '#0a0a0b', title: 'Chedex · Teleprompter', icon: path.join(__dirname, '..', '..', '..', 'build', 'icon.png'), autoHideMenuBar: true,
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false },
   });
   win.setMenuBarVisibility(false);

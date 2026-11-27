@@ -1,17 +1,57 @@
 {
-  "name": "cue-teleprompter",
+  "name": "chedex-launcher",
   "version": "1.0.0",
-  "description": "Teleprompter flotante para grabar",
+  "description": "Launcher de herramientas para creadores de contenido",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "node test/logic.test.js"
+    "test": "node test/logic.test.js",
+    "dist": "electron-builder"
   },
   "license": "MIT",
-  "dependencies": {
-    "@fontsource/dm-sans": "^5.0.0"
-  },
   "devDependencies": {
-    "electron": "^33.0.0"
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "productName": "Chedex Launcher",
+  "author": "Chedex",
+  "build": {
+    "appId": "app.chedex.launcher",
+    "productName": "Chedex Launcher",
+    "artifactName": "Chedex-Launcher-${version}-${os}-${arch}.${ext}",
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "src/**/*",
+      "build/icon.png",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.productivity"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Utility",
+      "maintainer": "Chedex <hola@chedex.app>"
+    }
   }
 }

@@ -8,11 +8,7 @@
   background: linear-gradient(180deg, #0d0e10, #0a0a0b); border-right: 1px solid var(--line);
 }
 .brand { display: flex; align-items: center; gap: 12px; padding: 0 8px 22px; }
-.logo {
-  display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px;
-  background: linear-gradient(145deg, #1d1f24, #0f1013); border: 1px solid var(--line);
-  color: var(--orange); font-weight: 800; font-size: 23px; box-shadow: 0 6px 18px rgba(0,0,0,.5);
-}
+.logo { width: 44px; height: 44px; display: block; filter: drop-shadow(0 6px 14px rgba(0,0,0,.5)); }
 .wordmark { font-weight: 800; font-size: 26px; letter-spacing: -.03em; }
 .wordmark em { font-style: normal; color: var(--orange); }
 .tag {
@@ -85,6 +81,6 @@ h1 { margin: 6px 0 0; font-weight: 800; font-size: clamp(36px, 4.6vw, 60px); lin
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 25%, #000 75%, transparent 100%);
           mask-image: linear-gradient(to bottom, transparent 0, #000 25%, #000 75%, transparent 100%);
 }
-.pv-tp p { margin: 0; font-weight: 800; font-size: 26px; letter-spacing: -.03em; line-height: 1.15; }
+.pv-tp p { margin: 0; font-weight: 800; font-size: 22px; letter-spacing: -.03em; line-height: 1.15; }
 .pv-tp p.dim { opacity: .35; }
 .pv-line { position: absolute; left: 0; right: 0; top: 50%; border-top: 2px solid var(--orange); box-shadow: 0 0 16px rgba(238,123,48,.6); }

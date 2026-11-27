@@ -36,3 +36,16 @@ Se abre en su propia ventana; empieza siempre encima; el botón "Siempre encima"
 ```bash
 npm test
 ```
+
+## Instalar (para usuarios)
+
+Descarga el instalador de tu sistema desde la pestaña **Releases** del repositorio:
+`.exe` (Windows), `.dmg` (Mac), `.AppImage` o `.deb` (Linux).
+
+> Los instaladores aún no están firmados: Windows (SmartScreen) y macOS (Gatekeeper) mostrarán un aviso la primera vez.
+
+## Crear los instaladores (para ti)
+
+- Automático: sube una etiqueta `v1.0.0` y GitHub Actions compila los tres sistemas y los adjunta a la release.
+  También puedes lanzarlo a mano desde la pestaña Actions.
+- Local (solo compila para tu sistema): `npm run dist` → carpeta `dist/`.

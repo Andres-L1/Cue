@@ -5,7 +5,7 @@ const tools = require('./src/tools');
 function createLauncher() {
   const win = new BrowserWindow({
     width: 1080, height: 680, minWidth: 780, minHeight: 520,
-    backgroundColor: '#0a0a0b', title: 'Chedex Launcher', autoHideMenuBar: true,
+    backgroundColor: '#0a0a0b', title: 'Chedex Launcher', icon: path.join(__dirname, 'build', 'icon.png'), autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'src', 'launcher', 'preload.js'),
       contextIsolation: true, nodeIntegration: false,
