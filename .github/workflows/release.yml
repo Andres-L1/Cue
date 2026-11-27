@@ -2,8 +2,8 @@ name: Instaladores
 
 on:
   push:
-    tags: ['v*']
     branches: [main]
+    tags: ['v*']
   workflow_dispatch:
 
 permissions:
@@ -39,15 +39,37 @@ jobs:
             dist/*.zip
             dist/*.blockmap
             dist/latest*.yml
-      - name: Adjuntar a la release
-        if: startsWith(github.ref, 'refs/tags/v')
+
+  # Publica una Release nueva cuando la versión de package.json aún no está publicada.
+  # Para sacar una versión: sube "version" en package.json y sube el cambio a main.
+  release:
+    needs: build
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Versión y comprobación
+        id: v
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VER=$(node -p "require('./package.json').version")
+          echo "tag=v$VER" >> "$GITHUB_OUTPUT"
+          if gh release view "v$VER" >/dev/null 2>&1; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "La versión v$VER ya está publicada; no se vuelve a publicar."
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.v.outputs.publish == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - if: steps.v.outputs.publish == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            dist/*.exe
-            dist/*.dmg
-            dist/*.AppImage
-            dist/*.deb
-            dist/*.zip
-            dist/*.blockmap
-            dist/latest*.yml
+          tag_name: ${{ steps.v.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: Chedex Launcher ${{ steps.v.outputs.tag }}
+          files: out/*

@@ -24,12 +24,11 @@ npm run dist   # instalador para tu sistema, en la carpeta dist/
 
 ## Instaladores y versiones
 
-GitHub Actions (`.github/workflows/release.yml`) compila Windows, Mac y Linux:
+GitHub Actions (`.github/workflows/release.yml`) compila Windows, Mac y Linux cada vez que se sube algo a `main`
+(y también se puede lanzar a mano desde la pestaña Actions). Los instaladores quedan como archivos descargables de esa ejecución.
 
-- Al subir a `main`, o al lanzarlo a mano desde la pestaña Actions: deja los instaladores como archivos descargables de esa ejecución.
-- Al subir una etiqueta `v*`: además los publica en Releases.
-
-Para publicar una versión nueva: sube `version` en `package.json`, y luego `git tag v1.0.1 && git push origin v1.0.1`.
+**Publicar una versión nueva:** sube `version` en `package.json` (por ejemplo `1.0.1`) y sube el cambio a `main`.
+Si esa versión aún no tiene Release, se crea sola con la etiqueta `v1.0.1` y los instaladores adjuntos. Si ya existe, no se toca.
 
 ## Actualizaciones automáticas
 
@@ -43,4 +42,4 @@ La app instalada busca versiones en las Releases de GitHub al abrirse y cada 4 h
 
 Los instaladores tienen nombre fijo (sin versión) para que los enlaces del README, del tipo `releases/latest/download/<archivo>`, no cambien nunca:
 `Chedex-Launcher-Windows.exe`, `Chedex-Launcher-Mac-arm64.dmg`, `Chedex-Launcher-Mac-x64.dmg`, `Chedex-Launcher-Linux.AppImage`, `Chedex-Launcher-Linux.deb`.
-Los enlaces solo funcionan cuando existe al menos una Release publicada con etiqueta `v*`. Si cambias algún nombre en `package.json`, actualiza el README.
+Los enlaces solo funcionan cuando existe al menos una Release publicada. Si cambias algún nombre en `package.json`, actualiza el README.
