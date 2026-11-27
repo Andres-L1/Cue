@@ -48,20 +48,28 @@
 
   $('launch').addEventListener('click', launch);
   window.addEventListener('keydown', (e) => {
-    if (!tools.length || !$('gate').hidden) return;
+    if (!tools.length || !$('gate').hidden || !$('upgate').hidden) return;
     if (e.key === 'ArrowDown') { e.preventDefault(); show(Math.min(tools.length - 1, current + 1)); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); show(Math.max(0, current - 1)); }
     else if (e.key === 'Enter' && document.activeElement.id !== 'launch') launch();
   });
 
   $('updBtn').addEventListener('click', () => window.launcher.installUpdate());
+  // Actualización obligatoria: capa sin «más tarde»; si falla, la app vuelve a ser usable.
+  const foot = document.querySelector('.foot').firstChild, footText = foot.textContent;
   window.launcher.onUpdate((s) => {
-    const box = $('update'), txt = $('updText'), btn = $('updBtn');
-    box.hidden = false;
-    btn.hidden = s.state !== 'ready';
-    txt.textContent = s.state === 'ready'
-      ? `Versión ${s.version} lista para instalar`
-      : `Descargando actualización… ${s.percent || 0}%`;
+    const gate = $('upgate'), btn = $('updBtn');
+    gate.hidden = s.state !== 'available' && s.state !== 'downloading';
+    foot.textContent = s.state === 'error' ? 'No se pudo actualizar. Se reintentará más tarde.' : footText;
+    if (s.state === 'available') {
+      $('upTitle').textContent = `Hay una versión nueva (v${s.version})`;
+      $('upText').textContent = 'Actualiza para seguir usando el Launcher. Se reiniciará solo.';
+      btn.hidden = false;
+      btn.focus();
+    } else if (s.state === 'downloading') {
+      btn.hidden = true;
+      $('upText').textContent = `Descargando… ${s.percent}%`;
+    }
   });
   window.launcher.version().then((v) => { $('ver').textContent = 'v' + v; });
 

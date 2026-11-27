@@ -1,4 +1,5 @@
 const { app, ipcMain } = require('electron');
+const { createUpdateFlow } = require('./update-flow');
 
 const CHECK_EVERY = 4 * 60 * 60 * 1000;
 
@@ -13,19 +14,17 @@ function setupUpdater(getWindow) {
   if (!app.isPackaged) return; // en desarrollo no hay nada que actualizar
 
   const { autoUpdater } = require('electron-updater');
-  autoUpdater.autoDownload = true;
+  autoUpdater.autoDownload = false; // se descarga al pulsar «Actualizar ahora»
   autoUpdater.autoInstallOnAppQuit = true;
 
-  autoUpdater.on('update-available', (i) => send({ state: 'downloading', version: i.version, percent: 0 }));
-  autoUpdater.on('download-progress', (p) => send({ state: 'downloading', percent: Math.round(p.percent) }));
-  autoUpdater.on('update-downloaded', (i) => send({ state: 'ready', version: i.version }));
-  autoUpdater.on('error', (e) => console.warn('Updater:', e && e.message));
+  const flow = createUpdateFlow({ autoUpdater, send });
+  ipcMain.on('update:install', () => flow.install());
 
-  ipcMain.on('update:install', () => autoUpdater.quitAndInstall());
-
-  const check = () => autoUpdater.checkForUpdates().catch((e) => console.warn('Updater:', e.message));
-  check();
-  setInterval(check, CHECK_EVERY);
+  // Comprobar cuando la ventana ya escucha `update:status`; si no, la capa no llegaría a mostrarse.
+  const w = getWindow();
+  if (w && w.webContents.isLoading()) w.webContents.once('did-finish-load', () => flow.check());
+  else flow.check();
+  setInterval(() => flow.check(), CHECK_EVERY);
 }
 
 module.exports = { setupUpdater };

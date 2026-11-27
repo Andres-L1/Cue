@@ -36,4 +36,70 @@ assert.strictEqual(decide({ token: 't', result: 'error', lastOk: 0 }, NOW).state
   console.log('access OK');
 })().catch((e) => { console.error(e); process.exit(1); });
 
+// Flujo de actualización obligatoria con un autoUpdater falso.
+(async () => {
+  const { EventEmitter } = require('events');
+  const { createUpdateFlow } = require('../src/update-flow');
+  const make = (opts = {}) => {
+    const up = new EventEmitter();
+    up.calls = { check: 0, download: 0, quit: 0 };
+    up.checkForUpdates = async () => { up.calls.check++; if (opts.checkFails) throw new Error('sin red'); };
+    up.downloadUpdate = async () => { up.calls.download++; if (opts.downloadFails) throw new Error('descarga'); };
+    up.quitAndInstall = () => { up.calls.quit++; };
+    const sent = [];
+    const flow = createUpdateFlow({ autoUpdater: up, send: (s) => sent.push(s) });
+    return { up, sent, flow, last: () => sent[sent.length - 1] };
+  };
+  const tick = () => new Promise((r) => setImmediate(r));
+  const warn = console.warn;
+  console.warn = () => {}; // los errores fuera de la descarga solo se registran
+
+  let t = make();
+  t.up.emit('update-available', { version: '1.2.0' });
+  assert.deepStrictEqual(t.sent, [{ state: 'available', version: '1.2.0' }]);
+
+  t = make();
+  t.flow.install();
+  assert.strictEqual(t.up.calls.download, 1);
+  assert.deepStrictEqual(t.last(), { state: 'downloading', percent: 0 });
+  t.up.emit('download-progress', { percent: 41.6 });
+  assert.deepStrictEqual(t.last(), { state: 'downloading', percent: 42 });
+  t.up.emit('update-downloaded', { version: '1.2.0' });
+  assert.strictEqual(t.up.calls.quit, 1);
+
+  t = make(); // Review 3: doble clic
+  t.flow.install(); t.flow.install();
+  assert.strictEqual(t.up.calls.download, 1);
+
+  t = make(); // Review 4: comprobación de 4 h durante la descarga
+  t.flow.install();
+  t.up.emit('update-available', { version: '1.2.0' });
+  assert.ok(!t.sent.some((s) => s.state === 'available'));
+
+  t = make(); // Review 1: error durante la descarga o la instalación
+  t.flow.install();
+  t.up.emit('error', new Error('x'));
+  assert.deepStrictEqual(t.last(), { state: 'error' });
+  t.flow.install();
+  assert.strictEqual(t.up.calls.download, 2, 'se puede reintentar');
+
+  t = make({ downloadFails: true }); // Review 1 bis
+  t.flow.install();
+  await tick();
+  assert.deepStrictEqual(t.last(), { state: 'error' });
+
+  t = make({ checkFails: true }); // Review 2: sin red al comprobar
+  await t.flow.check();
+  t.up.emit('error', new Error('sin red'));
+  assert.strictEqual(t.up.calls.check, 1);
+  assert.deepStrictEqual(t.sent, []);
+
+  t = make(); // Review 5
+  t.up.emit('update-not-available', {});
+  assert.deepStrictEqual(t.sent, [{ state: 'none' }]);
+
+  console.warn = warn;
+  console.log('update OK');
+})().catch((e) => { console.error(e); process.exit(1); });
+
 console.log('logic OK');
