@@ -21,7 +21,7 @@
     set(k, v) { try { localStorage.setItem(k, v); } catch {} },
   };
   const pieces = {};
-  let game = { headers: {}, moves: [] }, fens = [START], loaded = false, recording = false, raf = 0, previewStart = 0;
+  let game = { headers: {}, moves: [], intro: '' }, fens = [START], loaded = false, recording = false, raf = 0, previewStart = 0;
 
   $('signature').value = store.get('boardVideo.signature', '');
 
@@ -75,7 +75,33 @@
   }
   function opts() {
     const r = L.clampRange(game.moves.length, $('from').value, $('to').value);
-    return { ...r, perMove: Number($('pace').value), ...TIMING };
+    const perMove = Number($('pace').value);
+    // Más tiempo en las jugadas con comentario (y en la portada si el capítulo tiene introducción).
+    const durations = game.moves.slice(r.startPly, r.endPly).map((m) => perMove + L.readSec(m.comment));
+    const holdSec = TIMING.holdSec + (r.startPly === 0 ? L.readSec(game.intro) : 0);
+    return { ...r, perMove, durations, ...TIMING, holdSec };
+  }
+  // Texto en varias líneas; baja el cuerpo hasta que cabe y, si no, recorta con «…».
+  function wrap(str, width, sizes) {
+    for (let i = 0; i < sizes.length; i++) {
+      const [size, max] = sizes[i];
+      ctx.font = `500 ${size}px ${FONT}`;
+      const lines = []; let line = '';
+      for (const w of str.split(' ')) {
+        const next = line ? `${line} ${w}` : w;
+        if (ctx.measureText(next).width > width && line) { lines.push(line); line = w; } else line = next;
+      }
+      lines.push(line);
+      if (lines.length <= max || i === sizes.length - 1) {
+        if (lines.length > max) { lines.length = max; lines[max - 1] = lines[max - 1].replace(/\s*\S*$/, '') + '…'; }
+        return { size, lines };
+      }
+    }
+  }
+  function comment(str) {
+    if (!str) return;
+    const { size, lines } = wrap(str, W - 160, [[42, 3], [36, 3], [30, 4]]);
+    lines.forEach((l, i) => text(l, W / 2, BOARD.y + BOARD.size + 218 + i * size * 1.3, `500 ${size}px ${FONT}`, C.text));
   }
 
   function draw(t) {
@@ -118,7 +144,8 @@
     }
 
     // jugada en curso y marca
-    if (move) text(moveLabel(fr.ply - 1), W / 2, BOARD.y + BOARD.size + 150, `700 64px ${FONT}`, C.text);
+    if (move) text(moveLabel(fr.ply - 1), W / 2, BOARD.y + BOARD.size + 120, `700 56px ${FONT}`, C.text);
+    comment(move ? move.comment : fr.phase === 'hold' && o.startPly === 0 ? game.intro : '');
     brand(1800, 54);
 
     // tarjeta final
@@ -150,7 +177,7 @@
   async function load() {
     const src = $('source').value.trim();
     // Un PGN de Lichess lleva el enlace en la cabecera [Site]: solo es enlace si no parece PGN.
-    const isLink = !src.includes('[') && !/\b1\./.test(src) && L.gameIdFromLink(src);
+    const isLink = !src.includes('[') && !/\b1\./.test(src) && (L.studyFromLink(src) || L.gameIdFromLink(src));
     $('load').disabled = true;
     msg(isLink ? 'Descargando de Lichess…' : 'Leyendo el PGN…');
     try {

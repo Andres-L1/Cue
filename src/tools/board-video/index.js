@@ -1,8 +1,8 @@
 const { BrowserWindow, ipcMain, dialog } = require('electron');
 const fs = require('fs/promises');
 const path = require('path');
-const { parsePgn, fetchLichessPgn } = require('./pgn');
-const { gameIdFromLink } = require('./renderer/logic');
+const { parsePgn, fetchLichessPgn, fetchStudyPgn } = require('./pgn');
+const { gameIdFromLink, studyFromLink } = require('./renderer/logic');
 
 let win = null;
 
@@ -15,9 +15,15 @@ function setupIpc() {
     try {
       let text = String((req && req.text) || '');
       if (req && req.source === 'link') {
-        const id = gameIdFromLink(text);
-        if (!id) throw new Error('Ese enlace de Lichess no es válido.');
-        text = await fetchLichessPgn(id);
+        const study = studyFromLink(text);
+        if (study) {
+          if (!study.chapterId) throw new Error('Abre un capítulo del estudio y copia su enlace (termina en /idCapítulo).');
+          text = await fetchStudyPgn(study.studyId, study.chapterId);
+        } else {
+          const id = gameIdFromLink(text);
+          if (!id) throw new Error('Ese enlace de Lichess no es válido.');
+          text = await fetchLichessPgn(id);
+        }
       }
       return { ok: true, game: parsePgn(text) };
     } catch (e) {

@@ -155,4 +155,28 @@ assert.strictEqual(decide({ token: 't', result: 'error', lastOk: 0 }, NOW).state
   console.log('update OK');
 })().catch((e) => { console.error(e); process.exit(1); });
 
+// Estudios de Lichess: enlace de capítulo, comentarios y tiempos por jugada.
+assert.deepStrictEqual(B.studyFromLink('https://lichess.org/study/AbCdEfGh/IjKlMnOp#12'), { studyId: 'AbCdEfGh', chapterId: 'IjKlMnOp' });
+assert.deepStrictEqual(B.studyFromLink('https://lichess.org/study/AbCdEfGh'), { studyId: 'AbCdEfGh', chapterId: null });
+assert.strictEqual(B.studyFromLink('https://lichess.org/AbCdEfGh'), null);
+assert.strictEqual(B.gameIdFromLink('https://lichess.org/study/AbCdEfGh/IjKlMnOp'), null);
+assert.strictEqual(B.readSec(''), 0);
+assert.strictEqual(B.readSec('uno dos tres'), 2.5);
+assert.strictEqual(B.readSec(Array(100).fill('a').join(' ')), 12);
+const cm = P.parsePgn('[Event "x"]\n\n{ Intro del capítulo. } 1. e4 { Centro. [%cal Ge2e4] } e5 2. Nf3 *');
+assert.strictEqual(cm.intro, 'Intro del capítulo.');
+assert.deepStrictEqual(cm.moves.map((m) => m.comment), ['Centro.', '', '']);
+const sc = { startPly: 0, endPly: 2, perMove: 1, holdSec: 0.5, slideSec: 0.3, outroSec: 1, durations: [4, 1] };
+assert.strictEqual(B.durationOf(sc), 6.5);
+assert.strictEqual(B.frameAt(3, sc).ply, 1); // aún en la jugada con comentario
+assert.strictEqual(B.frameAt(4.6, sc).ply, 2);
+(async () => {
+  let seen;
+  const ok = async (url) => { seen = url; return { ok: true, status: 200, text: async () => 'pgn' }; };
+  assert.strictEqual(await P.fetchStudyPgn('AbCdEfGh', 'IjKlMnOp', ok), 'pgn');
+  assert.ok(seen.startsWith('https://lichess.org/api/study/AbCdEfGh/IjKlMnOp.pgn?') && seen.includes('comments=true'));
+  await assert.rejects(P.fetchStudyPgn('AbCdEfGh', 'IjKlMnOp', async () => ({ ok: false, status: 404 })), /estudio/);
+  console.log('study OK');
+})().catch((e) => { console.error(e); process.exit(1); });
+
 console.log('logic OK');
