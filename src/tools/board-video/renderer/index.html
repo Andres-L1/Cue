@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'">
+  <title>Chedex · Tablero a vídeo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="wrap">
+    <section class="panel">
+      <header class="brand">
+        <img class="logo" src="../../../shared/logo.png" alt="">
+        <span class="wordmark">tablero<em>vídeo</em></span>
+      </header>
+
+      <fieldset id="controls">
+        <label class="field grow">
+          <span>PGN o enlace de Lichess</span>
+          <textarea id="source" spellcheck="false" placeholder="https://lichess.org/… o pega aquí el PGN"></textarea>
+        </label>
+        <div class="row">
+          <button id="load" class="btn small" type="button">Cargar</button>
+          <p id="msg" class="msg" role="status"></p>
+        </div>
+
+        <div class="row">
+          <label class="field"><span>Desde la jugada</span><input id="from" type="number" min="1" placeholder="1"></label>
+          <label class="field"><span>Hasta la jugada</span><input id="to" type="number" min="1" placeholder="Final"></label>
+        </div>
+        <div class="row">
+          <label class="field"><span>Ritmo</span>
+            <select id="pace">
+              <option value="0.8">Rápido · 0,8 s por jugada</option>
+              <option value="1.2" selected>Normal · 1,2 s por jugada</option>
+              <option value="2">Lento · 2 s por jugada</option>
+            </select>
+          </label>
+          <label class="field"><span>Abajo</span>
+            <select id="orient">
+              <option value="w">Blancas</option>
+              <option value="b">Negras</option>
+            </select>
+          </label>
+        </div>
+        <label class="field"><span>Firma</span><input id="signature" type="text" maxlength="40" placeholder="@tucanal"></label>
+      </fieldset>
+
+      <div class="row">
+        <button id="generate" class="btn" type="button" disabled>Generar vídeo <span class="arrow">↗</span></button>
+        <progress id="progress" max="1" value="0" hidden></progress>
+      </div>
+      <p class="hint">La grabación va en tiempo real. No minimices la ventana mientras se graba.</p>
+    </section>
+
+    <section class="stage">
+      <canvas id="canvas" width="1080" height="1920"></canvas>
+    </section>
+  </main>
+
+  <script src="logic.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

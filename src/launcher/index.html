@@ -21,7 +21,10 @@
 
       <div class="soon" aria-hidden="true"><i></i>Más herramientas, pronto</div>
       <footer class="foot">Un proyecto de TopChess<span id="ver"></span></footer>
-      <button id="unlink" class="gate-link unlink" type="button" hidden></button>
+      <button id="profileBtn" class="tool profile-btn" type="button">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span>
+        <span><b>Perfil</b><small id="profileUser">Sin vincular</small></span>
+      </button>
     </aside>
 
     <main class="stage">
@@ -35,28 +38,36 @@
           <div id="dKeys" class="keys"></div>
           <div class="cta">
             <button id="launch" class="btn" type="button">Iniciar <span class="arrow">↗</span></button>
-            <span class="hint"><kbd>Enter</kbd> para iniciar · <kbd>↑</kbd><kbd>↓</kbd> para moverte</span>
+            <span id="keysHint" class="hint"><kbd>Enter</kbd> para iniciar · <kbd>↑</kbd><kbd>↓</kbd> para moverte</span>
+            <span id="lockNote" class="gate-error" hidden>Vincula tu cuenta en Perfil</span>
           </div>
         </div>
         <div id="dPreview" class="preview" aria-hidden="true"></div>
       </section>
+
+      <section id="profile" class="detail" aria-labelledby="pTitle" hidden>
+        <div class="copy">
+          <p class="eyebrow"><i></i>Perfil</p>
+          <h1 id="pTitle"></h1>
+          <div id="pLinked" class="copy" hidden>
+            <p class="gate-label">Código vinculado</p>
+            <p id="pHint" class="desc code-hint"></p>
+            <div class="cta"><button id="pUnlink" class="btn" type="button">Desvincular</button></div>
+          </div>
+          <form id="pForm" class="copy" hidden>
+            <p id="pText" class="desc"></p>
+            <label class="gate-label" for="pCode">Código de vinculación</label>
+            <input id="pCode" class="gate-input" type="text" autocomplete="off" spellcheck="false" placeholder="Pega aquí tu código">
+            <p id="pError" class="gate-error" role="alert" hidden></p>
+            <div class="cta">
+              <button id="pLink" class="btn" type="submit">Vincular</button>
+              <button id="pSite" class="gate-link" type="button">Conseguir mi código en chedex.app</button>
+            </div>
+          </form>
+        </div>
+      </section>
     </main>
   </div>
-  <section id="gate" class="gate" aria-labelledby="gTitle" hidden>
-    <form id="gForm" class="gate-card">
-      <img class="logo" src="../shared/logo.png" alt="">
-      <p class="eyebrow"><i></i>Acceso privado</p>
-      <h2 id="gTitle">Vincula tu Launcher</h2>
-      <p id="gText" class="desc"></p>
-      <label class="gate-label" for="gCode">Código de vinculación</label>
-      <input id="gCode" class="gate-input" type="text" autocomplete="off" spellcheck="false" placeholder="Pega aquí tu código">
-      <p id="gError" class="gate-error" role="alert" hidden></p>
-      <div class="cta">
-        <button id="gLink" class="btn" type="submit">Vincular</button>
-        <button id="gSite" class="gate-link" type="button">Conseguir mi código en chedex.app</button>
-      </div>
-    </form>
-  </section>
   <section id="upgate" class="gate" aria-labelledby="upTitle" hidden>
     <div class="gate-card">
       <img class="logo" src="../shared/logo.png" alt="">

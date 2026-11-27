@@ -2,6 +2,7 @@
 // Para añadir una: crea src/tools/<id>/ con manifest.js e index.js ({ open }) y regístrala aquí.
 const tools = [
   { manifest: require('./teleprompter/manifest'), open: require('./teleprompter').open },
+  { manifest: require('./board-video/manifest'), open: require('./board-video').open },
 ];
 
 module.exports = {

@@ -3,11 +3,14 @@
   const nav = $('tools');
   let tools = [];
   let current = 0;
+  let locked = true;
 
   function show(i) {
     current = i;
     const t = tools[i];
     [...nav.children].forEach((b, k) => b.classList.toggle('active', k === i));
+    $('profileBtn').classList.remove('active');
+    $('profile').hidden = true;
     $('detail').hidden = false;
     $('dKicker').textContent = `Herramienta ${String(i + 1).padStart(2, '0')}`;
     $('dName').textContent = t.name;
@@ -29,7 +32,15 @@
     const d = $('detail'); d.style.animation = 'none'; void d.offsetWidth; d.style.animation = '';
   }
 
-  function launch() { if (tools[current]) window.launcher.launch(tools[current].id); }
+  function showProfile() {
+    [...nav.children].forEach((b) => b.classList.remove('active'));
+    $('profileBtn').classList.add('active');
+    $('detail').hidden = true;
+    $('profile').hidden = false;
+    if (locked) $('pCode').focus();
+  }
+
+  function launch() { if (!locked && tools[current]) window.launcher.launch(tools[current].id); }
 
   function build() {
     nav.replaceChildren(...tools.map((t, i) => {
@@ -43,12 +54,12 @@
       b.addEventListener('dblclick', launch);
       return b;
     }));
-    if (tools.length) show(0);
+    if (tools.length && $('profile').hidden) show(0);
   }
 
   $('launch').addEventListener('click', launch);
   window.addEventListener('keydown', (e) => {
-    if (!tools.length || !$('gate').hidden || !$('upgate').hidden) return;
+    if (!tools.length || locked || !$('profile').hidden || !$('upgate').hidden) return;
     if (e.key === 'ArrowDown') { e.preventDefault(); show(Math.min(tools.length - 1, current + 1)); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); show(Math.max(0, current - 1)); }
     else if (e.key === 'Enter' && document.activeElement.id !== 'launch') launch();
@@ -82,26 +93,33 @@
     offline: 'No se puede comprobar tu acceso desde hace tiempo. Conéctate a internet y vuelve a intentarlo.',
   };
   function render(s) {
-    const locked = s.state !== 'ok';
-    $('gate').hidden = !locked;
-    $('unlink').hidden = locked;
-    $('unlink').textContent = s.username ? `@${s.username} · Desvincular` : 'Desvincular';
+    locked = s.state !== 'ok';
+    const user = s.username ? `@${s.username}` : '';
+    $('profileUser').textContent = user || 'Sin vincular';
+    $('pTitle').textContent = locked ? 'Vincula tu Launcher' : user || 'Cuenta vinculada';
+    $('pHint').textContent = '••••••••' + (s.codeHint || '');
+    $('pLinked').hidden = locked;
+    $('pForm').hidden = !locked;
+    $('launch').disabled = locked;
+    $('lockNote').hidden = !locked;
+    $('keysHint').hidden = locked;
     if (locked) {
-      $('gText').textContent = REASONS[s.reason] || REASONS.none;
-      $('gError').hidden = true;
-      $('gCode').focus();
+      $('pText').textContent = REASONS[s.reason] || REASONS.none;
+      $('pError').hidden = true;
+      showProfile();
     }
   }
-  $('gForm').addEventListener('submit', async (e) => {
+  $('pForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    $('gLink').disabled = true;
-    const r = await window.launcher.access.link($('gCode').value);
-    $('gLink').disabled = false;
-    if (r.ok) { $('gCode').value = ''; render(await window.launcher.access.status()); return; }
-    $('gError').textContent = r.error; $('gError').hidden = false;
+    $('pLink').disabled = true;
+    const r = await window.launcher.access.link($('pCode').value);
+    $('pLink').disabled = false;
+    if (r.ok) { $('pCode').value = ''; render(await window.launcher.access.status()); return; }
+    $('pError').textContent = r.error; $('pError').hidden = false;
   });
-  $('gSite').addEventListener('click', () => window.launcher.access.openSite());
-  $('unlink').addEventListener('click', () => window.launcher.access.unlink());
+  $('pSite').addEventListener('click', () => window.launcher.access.openSite());
+  $('pUnlink').addEventListener('click', () => window.launcher.access.unlink());
+  $('profileBtn').addEventListener('click', showProfile);
   window.launcher.access.onChange(render);
   window.launcher.access.status().then(render);
 })();

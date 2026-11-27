@@ -25,7 +25,7 @@ async function verifyRemote(token, fetchFn = fetch) {
 // Guarda el código vinculado en la carpeta de datos del usuario (cifrado si el sistema lo permite).
 function createAccess({ file, safeStorage, send, fetchFn = fetch, now = Date.now }) {
   let saved = { token: '', username: '', lastOk: 0 };
-  let status = { state: 'locked', reason: 'none', username: '' };
+  let status = { state: 'locked', reason: 'none', username: '', codeHint: '' };
   let lastCheck = 0;
 
   const load = () => {
@@ -45,7 +45,7 @@ function createAccess({ file, safeStorage, send, fetchFn = fetch, now = Date.now
   };
   const apply = (next) => {
     const changed = next.state !== status.state || next.reason !== status.reason;
-    status = { ...next, username: saved.username };
+    status = { ...next, username: saved.username, codeHint: saved.token.slice(-4) }; // nunca el token completo al renderer
     if (changed && send) send(status);
   };
 

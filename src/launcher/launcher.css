@@ -85,8 +85,8 @@ h1 { margin: 6px 0 0; font-weight: 800; font-size: clamp(36px, 4.6vw, 60px); lin
 .pv-tp p.dim { opacity: .35; }
 .pv-line { position: absolute; left: 0; right: 0; top: 50%; border-top: 2px solid var(--orange); box-shadow: 0 0 16px rgba(238,123,48,.6); }
 
-/* ---------- Acceso privado ---------- */
-.gate { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 24px; background: radial-gradient(700px 420px at 85% 15%, rgba(238,123,48,.13), transparent 60%), var(--bg); }
+/* ---------- Acceso privado / actualización ---------- */
+.gate {position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 24px; background: radial-gradient(700px 420px at 85% 15%, rgba(238,123,48,.13), transparent 60%), var(--bg); }
 .gate[hidden] { display: none; }
 #upgate { z-index: 20; }
 #upgate[hidden], #updBtn[hidden] { display: none; }
@@ -98,5 +98,7 @@ h1 { margin: 6px 0 0; font-weight: 800; font-size: clamp(36px, 4.6vw, 60px); lin
 .gate-error { margin: 0; color: #ff8a6b; font-size: 13px; }
 .gate-error[hidden] { display: none; }
 .gate-link { cursor: pointer; background: none; border: 0; color: var(--orange); font: 600 13px var(--font); text-decoration: underline; padding: 6px 0; }
-.unlink { margin: 4px 10px 0; text-align: left; color: #6b6e76; font-size: 11.5px; }
-.unlink[hidden] { display: none; }
+.copy[hidden] { display: none; }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+.profile-btn { margin-top: 10px; }
+.code-hint { font-family: var(--mono); letter-spacing: .12em; color: var(--text); }

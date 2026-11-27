@@ -8,6 +8,53 @@ assert.strictEqual(L.stepSpeed(100, -1), 90);
 assert.strictEqual(L.stepSpeed(L.MIN_SPEED, -1), L.MIN_SPEED);
 assert.deepStrictEqual(L.advance(0, 100, 0.5, 1000), { pos: 50, done: false });
 assert.deepStrictEqual(L.advance(990, 100, 0.5, 1000), { pos: 1000, done: true });
+
+// Tablero a vídeo: lógica pura del renderer.
+const B = require('../src/tools/board-video/renderer/logic.js');
+assert.strictEqual(B.gameIdFromLink('https://lichess.org/AbCdEfGh'), 'AbCdEfGh');
+assert.strictEqual(B.gameIdFromLink('https://lichess.org/AbCdEfGh/black'), 'AbCdEfGh');
+assert.strictEqual(B.gameIdFromLink('https://lichess.org/AbCdEfGhIjKl'), 'AbCdEfGh');
+assert.strictEqual(B.gameIdFromLink('mira esto https://lichess.org/AbCdEfGh!'), 'AbCdEfGh');
+assert.strictEqual(B.gameIdFromLink('hola'), null);
+assert.strictEqual(B.gameIdFromLink(''), null);
+assert.deepStrictEqual(B.clampRange(40, 3, 5), { startPly: 4, endPly: 10 });
+for (const [a, b] of [[5, 3], ['x', 2], ['', ''], [0, 3], [30, 35]]) {
+  assert.deepStrictEqual(B.clampRange(40, a, b), { startPly: 0, endPly: 40 }, `rango ${a}-${b}`);
+}
+assert.deepStrictEqual(B.clampRange(40, 3, 999), { startPly: 4, endPly: 40 });
+const one = { startPly: 0, endPly: 1, perMove: 1.2, holdSec: 0.6, slideSec: 0.3, outroSec: 2 };
+assert.ok(Math.abs(B.durationOf(one) - 3.8) < 1e-9);
+assert.strictEqual(B.frameAt(0, one).phase, 'hold');
+const f = B.frameAt(0.7, one);
+assert.deepStrictEqual([f.phase, f.ply], ['moves', 1]);
+assert.ok(Math.abs(f.progress - 1 / 3) < 0.01);
+assert.deepStrictEqual(B.frameAt(B.durationOf(one), one), { phase: 'outro', ply: 1, progress: 1 });
+const tramo = { ...one, startPly: 4, endPly: 5 }; // tramo de una sola jugada
+assert.ok(B.durationOf(tramo) > 0);
+assert.strictEqual(B.frameAt(0.7, tramo).ply, 5);
+
+// Tablero a vídeo: PGN y descarga de Lichess (proceso principal).
+const P = require('../src/tools/board-video/pgn.js');
+const g = P.parsePgn('[White "Ana"]\n[Black "Luis"]\n[WhiteElo "1800"]\n[BlackElo "1750"]\n[Result "*"]\n\n1. e4 e5 2. Nf3 Nc6 *');
+assert.deepStrictEqual(g.moves.map((m) => [m.san, m.from, m.to]), [['e4', 'e2', 'e4'], ['e5', 'e7', 'e5'], ['Nf3', 'g1', 'f3'], ['Nc6', 'b8', 'c6']]);
+assert.deepStrictEqual(g.headers, { white: 'Ana', black: 'Luis', whiteElo: '1800', blackElo: '1750', result: '*' });
+assert.ok(g.startFen.startsWith('rnbqkbnr/pppppppp'));
+assert.ok(g.moves[3].fen.startsWith('r1bqkbnr/pppp1ppp/2n5'));
+assert.throws(() => P.parsePgn(''), /PGN/);
+assert.throws(() => P.parsePgn('1. e4 e5 2. Ke4'), /PGN/);
+(async () => {
+  const fake = (r) => async (url, opts) => {
+    assert.strictEqual(url, 'https://lichess.org/game/export/AbCdEfGh');
+    assert.strictEqual(opts.headers['User-Agent'], 'chedex.app (Launcher)');
+    if (r === 'red') throw new Error('ECONNRESET');
+    return r;
+  };
+  await assert.rejects(P.fetchLichessPgn('AbCdEfGh', fake({ ok: false, status: 404 })), { message: 'Esa partida no existe o es privada.' });
+  await assert.rejects(P.fetchLichessPgn('AbCdEfGh', fake('red')), { message: 'No se pudo conectar con Lichess.' });
+  await assert.rejects(P.fetchLichessPgn('AbCdEfGh', fake({ ok: false, status: 500 })), /Lichess/);
+  assert.strictEqual(await P.fetchLichessPgn('AbCdEfGh', fake({ ok: true, status: 200, text: async () => '1. e4 *' })), '1. e4 *');
+  console.log('pgn OK');
+})().catch((e) => { console.error(e); process.exit(1); });
 const { decide, createAccess } = require('../src/access');
 const H = 3600 * 1000, NOW = 1e12;
 assert.strictEqual(decide({ token: '' }, NOW).state, 'locked');
@@ -24,15 +71,21 @@ assert.strictEqual(decide({ token: 't', result: 'error', lastOk: 0 }, NOW).state
   let reply = { ok: true, status: 200, json: async () => ({ valid: true, username: 'Ana' }) };
   const events = [];
   const acc = createAccess({ file, safeStorage: null, send: (s) => events.push(s.state), fetchFn: async () => { if (reply.fail) throw new Error('red'); return reply; } });
-  const code = 'a'.repeat(43);
+  const valid = reply, code = 'a'.repeat(39) + 'WXYZ';
   assert.strictEqual((await acc.link('corto')).ok, false);
   assert.strictEqual((await acc.link(code)).ok, true);
   assert.strictEqual(acc.status().state, 'ok');
+  assert.strictEqual(acc.status().codeHint, 'WXYZ', 'solo los últimos 4 caracteres');
   reply = { ok: false, status: 401, json: async () => ({ valid: false }) };
   await acc.init();
   assert.deepStrictEqual([acc.status().state, acc.status().reason], ['locked', 'revoked']);
+  assert.strictEqual(acc.status().codeHint, '');
   assert.strictEqual(JSON.parse(fs.readFileSync(file, 'utf8')).token, '', 'el código revocado se borra');
   assert.deepStrictEqual(events, ['ok', 'locked']);
+  reply = valid;
+  await acc.link(code);
+  acc.unlink();
+  assert.deepStrictEqual([acc.status().state, acc.status().codeHint], ['locked', '']);
   console.log('access OK');
 })().catch((e) => { console.error(e); process.exit(1); });
 
