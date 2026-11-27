@@ -41,7 +41,8 @@
     },
     "mac": {
       "target": [
-        "dmg"
+        "dmg",
+        "zip"
       ],
       "category": "public.app-category.productivity"
     },
@@ -52,6 +53,16 @@
       ],
       "category": "Utility",
       "maintainer": "Chedex <hola@chedex.app>"
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Andres-L1",
+        "repo": "Cue"
+      }
+    ]
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.11"
   }
 }

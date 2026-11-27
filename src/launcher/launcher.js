@@ -54,5 +54,16 @@
     else if (e.key === 'Enter' && document.activeElement.id !== 'launch') launch();
   });
 
+  $('updBtn').addEventListener('click', () => window.launcher.installUpdate());
+  window.launcher.onUpdate((s) => {
+    const box = $('update'), txt = $('updText'), btn = $('updBtn');
+    box.hidden = false;
+    btn.hidden = s.state !== 'ready';
+    txt.textContent = s.state === 'ready'
+      ? `Versión ${s.version} lista para instalar`
+      : `Descargando actualización… ${s.percent || 0}%`;
+  });
+  window.launcher.version().then((v) => { $('ver').textContent = 'v' + v; });
+
   window.launcher.list().then((l) => { tools = l; build(); });
 })();

@@ -1,9 +1,12 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const tools = require('./src/tools');
+const { setupUpdater } = require('./src/updater');
+
+let launcherWin = null;
 
 function createLauncher() {
-  const win = new BrowserWindow({
+  const win = launcherWin = new BrowserWindow({
     width: 1080, height: 680, minWidth: 780, minHeight: 520,
     backgroundColor: '#0a0a0b', title: 'Chedex Launcher', icon: path.join(__dirname, 'build', 'icon.png'), autoHideMenuBar: true,
     webPreferences: {
@@ -19,6 +22,7 @@ app.whenReady().then(() => {
   ipcMain.handle('tools:list', () => tools.list());
   ipcMain.handle('tools:launch', (_e, id) => tools.launch(String(id)));
   createLauncher();
+  setupUpdater(() => launcherWin);
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createLauncher(); });
 });
 
