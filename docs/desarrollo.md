@@ -26,7 +26,7 @@ npm run dist   # instalador para tu sistema, en la carpeta dist/
 
 GitHub Actions (`.github/workflows/release.yml`) compila Windows, Mac y Linux:
 
-- Al subir a la rama de trabajo, o al lanzarlo a mano desde la pestaña Actions: deja los instaladores como archivos descargables de esa ejecución.
+- Al subir a `main`, o al lanzarlo a mano desde la pestaña Actions: deja los instaladores como archivos descargables de esa ejecución.
 - Al subir una etiqueta `v*`: además los publica en Releases.
 
 Para publicar una versión nueva: sube `version` en `package.json`, y luego `git tag v1.0.1 && git push origin v1.0.1`.

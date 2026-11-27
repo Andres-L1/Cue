@@ -3,7 +3,7 @@ name: Instaladores
 on:
   push:
     tags: ['v*']
-    branches: ['claude/laughing-gauss-hbzeaf']
+    branches: [main]
   workflow_dispatch:
 
 permissions:
