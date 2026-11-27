@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'">
+  <title>Chedex Launcher</title>
+  <link rel="stylesheet" href="launcher.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="side">
+      <header class="brand">
+        <span class="logo" aria-hidden="true">C</span>
+        <span class="wordmark">che<em>dex</em></span>
+        <span class="tag">Launcher</span>
+      </header>
+
+      <p class="label">Herramientas</p>
+      <nav id="tools" class="tools" aria-label="Herramientas"></nav>
+
+      <div class="soon" aria-hidden="true"><i></i>Más herramientas, pronto</div>
+      <footer class="foot">Un proyecto de TopChess, a tu lado</footer>
+    </aside>
+
+    <main class="stage">
+      <section id="detail" class="detail" hidden>
+        <div class="copy">
+          <p class="eyebrow"><i></i><span id="dKicker"></span></p>
+          <h1 id="dName"></h1>
+          <p id="dTagline" class="tagline"></p>
+          <p id="dDesc" class="desc"></p>
+          <ul id="dFeatures" class="features"></ul>
+          <div id="dKeys" class="keys"></div>
+          <div class="cta">
+            <button id="launch" class="btn" type="button">Iniciar <span class="arrow">↗</span></button>
+            <span class="hint"><kbd>Enter</kbd> para iniciar · <kbd>↑</kbd><kbd>↓</kbd> para moverte</span>
+          </div>
+        </div>
+        <div id="dPreview" class="preview" aria-hidden="true"></div>
+      </section>
+    </main>
+  </div>
+  <script src="launcher.js"></script>
+</body>
+</html>

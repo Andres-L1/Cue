@@ -1,5 +1,5 @@
 const assert = require('assert');
-const L = require('../renderer/logic.js');
+const L = require('../src/tools/teleprompter/renderer/logic.js');
 
 assert.strictEqual(L.clampSpeed(5), L.MIN_SPEED);
 assert.strictEqual(L.clampSpeed(9999), L.MAX_SPEED);
