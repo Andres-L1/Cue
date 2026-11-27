@@ -1,9 +1,11 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, safeStorage, shell } = require('electron');
 const path = require('path');
 const tools = require('./src/tools');
 const { setupUpdater } = require('./src/updater');
+const { createAccess, SITE_URL } = require('./src/access');
 
 let launcherWin = null;
+let access = null;
 
 function createLauncher() {
   const win = launcherWin = new BrowserWindow({
@@ -15,13 +17,25 @@ function createLauncher() {
     },
   });
   win.setMenuBarVisibility(false);
+  win.on('focus', () => access && access.onFocus());
   win.loadFile(path.join(__dirname, 'src', 'launcher', 'index.html'));
 }
 
 app.whenReady().then(() => {
   ipcMain.handle('tools:list', () => tools.list());
-  ipcMain.handle('tools:launch', (_e, id) => tools.launch(String(id)));
+  access = createAccess({
+    file: path.join(app.getPath('userData'), 'access.json'),
+    safeStorage,
+    send: (s) => { if (launcherWin && !launcherWin.isDestroyed()) launcherWin.webContents.send('access:status', s); },
+  });
+  // Sin acceso verificado no se abre ninguna herramienta.
+  ipcMain.handle('tools:launch', (_e, id) => access.status().state === 'ok' && tools.launch(String(id)));
+  ipcMain.handle('access:status', () => access.status());
+  ipcMain.handle('access:link', (_e, code) => access.link(code));
+  ipcMain.handle('access:unlink', () => access.unlink());
+  ipcMain.handle('access:site', () => shell.openExternal(SITE_URL));
   createLauncher();
+  access.init();
   setupUpdater(() => launcherWin);
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createLauncher(); });
 });

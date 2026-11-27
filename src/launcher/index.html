@@ -25,6 +25,7 @@
         <button id="updBtn" class="updbtn" type="button" hidden>Reiniciar y actualizar</button>
       </div>
       <footer class="foot">Un proyecto de TopChess<span id="ver"></span></footer>
+      <button id="unlink" class="gate-link unlink" type="button" hidden></button>
     </aside>
 
     <main class="stage">
@@ -45,6 +46,21 @@
       </section>
     </main>
   </div>
+  <section id="gate" class="gate" aria-labelledby="gTitle" hidden>
+    <form id="gForm" class="gate-card">
+      <img class="logo" src="../shared/logo.png" alt="">
+      <p class="eyebrow"><i></i>Acceso privado</p>
+      <h2 id="gTitle">Vincula tu Launcher</h2>
+      <p id="gText" class="desc"></p>
+      <label class="gate-label" for="gCode">Código de vinculación</label>
+      <input id="gCode" class="gate-input" type="text" autocomplete="off" spellcheck="false" placeholder="Pega aquí tu código">
+      <p id="gError" class="gate-error" role="alert" hidden></p>
+      <div class="cta">
+        <button id="gLink" class="btn" type="submit">Vincular</button>
+        <button id="gSite" class="gate-link" type="button">Conseguir mi código en chedex.app</button>
+      </div>
+    </form>
+  </section>
   <script src="launcher.js"></script>
 </body>
 </html>

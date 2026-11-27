@@ -48,7 +48,7 @@
 
   $('launch').addEventListener('click', launch);
   window.addEventListener('keydown', (e) => {
-    if (!tools.length) return;
+    if (!tools.length || !$('gate').hidden) return;
     if (e.key === 'ArrowDown') { e.preventDefault(); show(Math.min(tools.length - 1, current + 1)); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); show(Math.max(0, current - 1)); }
     else if (e.key === 'Enter' && document.activeElement.id !== 'launch') launch();
@@ -66,4 +66,34 @@
   window.launcher.version().then((v) => { $('ver').textContent = 'v' + v; });
 
   window.launcher.list().then((l) => { tools = l; build(); });
+
+  // Acceso privado: sin código verificado de Chedex no se puede usar el launcher.
+  const REASONS = {
+    none: 'Esta app es solo para clientes de Chedex. Genera tu código en chedex.app/launcher (con tu usuario de Lichess) y pégalo aquí.',
+    revoked: 'Tu acceso ya no está activo. Si crees que es un error, escríbenos. Si vuelves a ser cliente, genera un código nuevo en chedex.app/launcher.',
+    offline: 'No se puede comprobar tu acceso desde hace tiempo. Conéctate a internet y vuelve a intentarlo.',
+  };
+  function render(s) {
+    const locked = s.state !== 'ok';
+    $('gate').hidden = !locked;
+    $('unlink').hidden = locked;
+    $('unlink').textContent = s.username ? `@${s.username} · Desvincular` : 'Desvincular';
+    if (locked) {
+      $('gText').textContent = REASONS[s.reason] || REASONS.none;
+      $('gError').hidden = true;
+      $('gCode').focus();
+    }
+  }
+  $('gForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    $('gLink').disabled = true;
+    const r = await window.launcher.access.link($('gCode').value);
+    $('gLink').disabled = false;
+    if (r.ok) { $('gCode').value = ''; render(await window.launcher.access.status()); return; }
+    $('gError').textContent = r.error; $('gError').hidden = false;
+  });
+  $('gSite').addEventListener('click', () => window.launcher.access.openSite());
+  $('unlink').addEventListener('click', () => window.launcher.access.unlink());
+  window.launcher.access.onChange(render);
+  window.launcher.access.status().then(render);
 })();
