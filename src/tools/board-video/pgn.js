@@ -4,11 +4,30 @@ const { Chess } = require('chess.js');
 // Quita las órdenes de Lichess ([%cal ...], [%clk ...]) y los espacios sobrantes.
 const clean = (c) => String(c || '').replace(/\[%[^\]]*\]/g, '').replace(/\s+/g, ' ').trim();
 
+// Quita las variantes (...) respetando los comentarios {...}.
+function withoutVariations(pgn) {
+  let out = '', depth = 0, inBrace = false;
+  for (const ch of pgn) {
+    if (inBrace) { if (depth === 0) out += ch; if (ch === '}') inBrace = false; continue; }
+    if (ch === '{') { inBrace = true; if (depth === 0) out += ch; } else if (ch === '(') depth++;
+    else if (ch === ')') depth = Math.max(0, depth - 1);
+    else if (depth === 0) out += ch;
+  }
+  return out;
+}
+
 function parsePgn(text) {
-  const src = String(text || '').trim();
+  // Pegar desde la web mete espacios raros; algunos PGN ponen el comentario tras el número de jugada y Lichess a veces deja dos comentarios seguidos.
+  const src = String(text || '').replace(/[\u00a0\u200b\u2007\u202f\ufeff]/g, ' ').replace(/(\d+\.+)\s*(\{[^}]*\})/g, '$2 $1').replace(/\}\s*\{/g, ' ').trim();
   if (!src) throw new Error('Pega un PGN o un enlace de Lichess.');
   const chess = new Chess();
-  try { chess.loadPgn(src); } catch { throw new Error('El PGN no es válido o tiene jugadas imposibles.'); }
+  // Si el PGN completo falla, se reintenta sin variantes y, por último, sin comentarios.
+  const noVars = withoutVariations(src);
+  let err;
+  for (const attempt of [src, noVars, noVars.replace(/\{[^}]*\}/g, ' ')]) {
+    try { chess.loadPgn(attempt); err = null; break; } catch (e) { err = err || e; }
+  }
+  if (err) throw new Error(`El PGN no es válido o tiene jugadas imposibles. (${String(err.message).replace(/\s+/g, ' ').slice(0, 120)})`);
   const history = chess.history({ verbose: true });
   if (!history.length) throw new Error('El PGN no tiene jugadas.');
   const h = chess.getHeaders();

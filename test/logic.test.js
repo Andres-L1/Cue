@@ -166,6 +166,10 @@ assert.strictEqual(B.readSec(Array(100).fill('a').join(' ')), 12);
 const cm = P.parsePgn('[Event "x"]\n\n{ Intro del capítulo. } 1. e4 { Centro. [%cal Ge2e4] } e5 2. Nf3 *');
 assert.strictEqual(cm.intro, 'Intro del capítulo.');
 assert.deepStrictEqual(cm.moves.map((m) => m.comment), ['Centro.', '', '']);
+// Lichess deja dos comentarios seguidos tras una jugada (texto + [%csl]): antes rompía la carga.
+const two = P.parsePgn('[Event "x"]\n\n{ Intro. } 1. e4 { Texto largo. } { [%csl Ge4] } c6 *');
+assert.strictEqual(two.intro, 'Intro.');
+assert.strictEqual(two.moves[0].comment, 'Texto largo.');
 const sc = { startPly: 0, endPly: 2, perMove: 1, holdSec: 0.5, slideSec: 0.3, outroSec: 1, durations: [4, 1] };
 assert.strictEqual(B.durationOf(sc), 6.5);
 assert.strictEqual(B.frameAt(3, sc).ply, 1); // aún en la jugada con comentario
