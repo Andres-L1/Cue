@@ -1,0 +1,17 @@
+{
+  "name": "cue-teleprompter",
+  "version": "1.0.0",
+  "description": "Teleprompter flotante para grabar",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node test/logic.test.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@fontsource/dm-sans": "^5.0.0"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0"
+  }
+}

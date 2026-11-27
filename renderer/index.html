@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'">
+  <title>Cue</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- EDITOR -->
+  <main id="editor" class="screen">
+    <header class="brand">
+      <span class="logo" aria-hidden="true">C</span>
+      <span class="wordmark">cue<em>prompter</em></span>
+    </header>
+
+    <p class="eyebrow"><i></i>Teleprompter flotante</p>
+    <h1>Pega tu guion.<br>Lo leemos contigo.</h1>
+
+    <textarea id="script" spellcheck="false" placeholder="Pega aquí tu guion…"></textarea>
+
+    <div class="row">
+      <label class="field">
+        <span>Velocidad <b id="speedOut">60</b> px/s</span>
+        <input id="speed" type="range" min="10" max="400" step="10" value="60">
+      </label>
+      <label class="field">
+        <span>Tamaño <b id="sizeOut">64</b> px</span>
+        <input id="size" type="range" min="32" max="140" step="2" value="64">
+      </label>
+      <button id="prepare" class="btn" type="button">Preparar guion <span class="arrow">↗</span></button>
+    </div>
+
+    <p class="hint">
+      <kbd>Espacio</kbd> pausa/sigue · <kbd>↑</kbd><kbd>↓</kbd> velocidad ·
+      <kbd>Ctrl</kbd>+<kbd>Mayús</kbd>+<kbd>T</kbd> pausa global · <kbd>Esc</kbd> vuelve aquí
+    </p>
+  </main>
+
+  <!-- LECTOR -->
+  <section id="reader" class="screen hidden" aria-live="off">
+    <div id="viewport">
+      <div id="text"></div>
+    </div>
+    <div id="line" aria-hidden="true"></div>
+
+    <div id="hud">
+      <button id="back" class="chip" type="button" title="Volver (Esc)">← Editar</button>
+      <span id="state" class="chip state">Listo</span>
+      <span id="speedHud" class="chip">60 px/s</span>
+      <label class="chip">Opacidad
+        <input id="opacity" type="range" min="30" max="100" step="5" value="100">
+      </label>
+      <button id="pin" class="chip on" type="button" title="Siempre encima">Siempre encima</button>
+    </div>
+
+    <button id="start" class="btn big" type="button">Empezar <span class="arrow">↗</span></button>
+  </section>
+
+  <script src="logic.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
