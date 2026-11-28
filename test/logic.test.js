@@ -183,4 +183,34 @@ assert.strictEqual(B.frameAt(4.6, sc).ply, 2);
   console.log('study OK');
 })().catch((e) => { console.error(e); process.exit(1); });
 
+// Carrusel: lógica pura y validación de posiciones.
+const C = require('../src/tools/carousel/renderer/logic.js');
+const { finalFen } = require('../src/tools/carousel/position.js');
+const meas = (s, z) => s.length * z / 2;
+assert.deepStrictEqual(C.fitText('hola mundo', meas, 200, [[40, 2], [30, 2]]), { size: 40, lines: ['hola mundo'] });
+const longFit = C.fitText(Array(50).fill('palabra').join(' '), meas, 400, [[20, 3]]); // 399 caracteres
+assert.strictEqual(longFit.lines.length, 3);
+assert.ok(longFit.lines[2].endsWith('…'));
+assert.ok(longFit.lines.every((l) => meas(l, 20) <= 400));
+const wordFit = C.fitText('a'.repeat(80), meas, 200, [[20, 10]]);
+assert.ok(wordFit.lines.length > 1 && wordFit.lines.every((l) => meas(l, 20) <= 200));
+assert.strictEqual(wordFit.lines.join(''), 'a'.repeat(80));
+const wide = C.coverRect(2000, 1000, 1080, 1440);
+assert.strictEqual(wide.sh, 1000);
+assert.ok(Math.abs(wide.sw / wide.sh - 1080 / 1440) < 1e-9);
+assert.ok(Math.abs(wide.sx - (2000 - wide.sw) / 2) < 1e-9 && wide.sy === 0);
+const tiny = C.coverRect(100, 100, 1080, 1440);
+assert.ok(Math.abs(tiny.sw / tiny.sh - 1080 / 1440) < 1e-9 && tiny.sh === 100 && tiny.sw <= 100);
+assert.strictEqual(C.fileName(0), 'carrusel-1.png');
+assert.strictEqual(C.fileName(4), 'carrusel-5.png');
+assert.strictEqual(C.isImageFile('a.gif', 'image/gif'), false);
+assert.strictEqual(C.isImageFile('a.png', 'image/png'), true);
+assert.strictEqual(C.ROLES.length, 5);
+assert.strictEqual(C.HINTS.length, 5);
+const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+assert.strictEqual(finalFen(START), START);
+assert.strictEqual(finalFen('1. e4 e5'), 'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2'); // chess.js 1.x omite el al paso sin captura posible
+assert.throws(() => finalFen('zzz'));
+assert.throws(() => finalFen(''));
+
 console.log('logic OK');
