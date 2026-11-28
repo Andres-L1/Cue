@@ -18,7 +18,7 @@ Que un cliente de Chedex escriba el texto de un carrusel y obtenga las 5 imágen
 
 ## No objetivos (v1)
 
-Número variable de diapositivas, más tipografías o colores, plantillas, guardar proyectos, animación, edición de la foto más allá de recortarla para cubrir la diapositiva, firma del cliente.
+~~Número variable de diapositivas~~ (hecho en 1.4.2: de 1 a 8), más tipografías o colores, plantillas, guardar proyectos, animación, edición de la foto más allá de recortarla para cubrir la diapositiva, firma del cliente.
 
 ## Antiobjetivos
 
@@ -55,6 +55,14 @@ Cada diapositiva es un objeto `{ role, text, textColor, accent, accentColor, pos
 - Límites: letra entre ×0,5 y ×3, anchos mínimos, y siempre quedan 60 px dentro de la diapositiva. El recuadro de selección se pinta después de copiar la miniatura: nunca llega a miniaturas ni al PNG.
 - Teclado (canvas enfocado): flechas 4 px (Mayús 20 px), Supr/Retroceso devuelve el elemento a automático (no borra contenido), Esc suelta. «Restablecer diseño» devuelve toda la diapositiva a automático.
 - Lógica pura (`hitTest`, `handlesOf`, `dragBox`) en `renderer/logic.js` con tests. Pendiente (1.4.2): guías, deshacer, rotación, orden de capas.
+
+## 1.4.2 · Guías, deshacer, rotación y número de diapositivas
+
+- **Guías con imán** al arrastrar o redimensionar: bordes y centro (caja envolvente) se pegan a menos de 8 px al centro de la diapositiva, a los márgenes (x 90/990, y 90/1320) y a bordes/centros de los demás elementos. Al redimensionar solo se ajusta el borde que se mueve, y solo sin giro. Líneas naranjas solo en la vista previa durante el gesto. Alt desactiva el imán; las flechas no lo usan.
+- **Deshacer/rehacer** de la disposición (`slide.layout`), con historial propio en cada diapositiva (`slide.history = { undo, redo }`, 100 pasos). Un paso por gesto: arrastre, redimensión, giro, Supr, «Restablecer diseño» y cada racha de flechas sobre el mismo elemento (< 1 s entre pulsaciones). Ctrl/Cmd+Z, Ctrl/Cmd+Mayús+Z y Ctrl+Y fuera de los campos de texto (en ellos sigue el deshacer nativo), y botones «Deshacer»/«Rehacer». Quitar una foto no se deshace: borra su override también del historial.
+- **Rotación** con el círculo sobre el recuadro (si quedaría fuera de la diapositiva, va debajo o dentro). `rot` en grados en el override, solo si no es 0; imán cada 15° a menos de 3° (Alt lo quita). Girado, el recuadro y los tiradores giran con él, el hit-test usa los ejes del elemento, el redimensionado proyecta el puntero a esos ejes con la esquina o el lado opuesto fijo, y los 60 px mínimos se miden sobre la caja envolvente. El trazo rojo gira con la frase; el degradado de legibilidad cubre la caja envolvente. Sin giro el PNG es idéntico al de 1.4.1.
+- **De 1 a 8 diapositivas** (antes un no objetivo). Arranca con las 5 de la estructura CTH. «Añadir» crea una vacía al final; «Quitar» elimina la activa, con un diálogo propio salvo que esté vacía. El rol y la pista van con la posición (`roleOf`/`hintOf`); de la 6 en adelante, «Diapositiva N» (pestaña «Extra»). Se exportan `carrusel-1.png` … `carrusel-N.png`; el proceso principal acepta de 1 a 8 con nombres `carrusel-[1-8].png`.
+- Lógica pura nueva en `renderer/logic.js` con tests: `bounds`, `angleAt`, `snapAngle`, `snapDrag`, `history`/`record`/`undo`/`redo`, `roleOf`, `hintOf`, `isBlank`. Fuera de alcance: orden de capas, selección múltiple.
 
 ## Para el implementador
 

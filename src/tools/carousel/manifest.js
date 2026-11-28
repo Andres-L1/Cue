@@ -2,12 +2,12 @@
 module.exports = {
   id: 'carousel',
   name: 'Carrusel',
-  tagline: 'Cinco diapositivas para Instagram, sin diseñar.',
+  tagline: 'Tu carrusel para Instagram, sin diseñar.',
   description:
     'Escribe el texto de cada diapositiva, añade una frase destacada, una posición o una foto ' +
-    'y exporta las 5 imágenes del carrusel con el estilo de Chedex.',
+    'y exporta las imágenes del carrusel (de 1 a 8) con el estilo de Chedex.',
   features: [
-    '5 imágenes PNG de 1080×1440',
+    'De 1 a 8 imágenes PNG de 1080×1440',
     'Estructura de carrusel con una pista en cada diapositiva',
     'Frase destacada y colores de Chedex',
     'Tablero desde FEN o PGN y foto opcional',

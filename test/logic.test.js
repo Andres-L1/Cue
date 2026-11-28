@@ -232,6 +232,74 @@ assert.ok(near(big.scale, 1.5) && near(big.w, 1350) && big.x === 90);
 assert.strictEqual(C.dragBox('text', rects.text, 'se', 99999, 99999, 1080, 1440).scale, 3, 'letra con tope');
 assert.ok(C.dragBox('text', { ...rects.text, w: 900, scale: 1 }, 'nw', 800, 0, 1080, 1440).scale >= 0.5);
 assert.deepStrictEqual(Object.keys(C.handlesOf('photo', rects.photo)), ['nw', 'ne', 'sw', 'se']);
+// Carrusel 1.4.2: rotación, guías con imán, deshacer y número de diapositivas.
+{
+const nearP = (p, q) => Math.abs(p[0] - q[0]) < 1e-6 && Math.abs(p[1] - q[1]) < 1e-6;
+const sq = { x: 400, y: 400, w: 200, h: 100 }, sq90 = { ...sq, rot: 90 }; // centro (500, 450)
+assert.ok(nearP(C.handlesOf('photo', sq90).nw, [550, 350]), 'los tiradores giran con el elemento');
+assert.ok(nearP(C.handlesOf('photo', sq, 30, 1080, 1440).rot, [500, 370]), 'tirador de giro sobre el borde superior');
+assert.ok(nearP(C.handlesOf('photo', { x: 0, y: 0, w: 1080, h: 1440 }, 30, 1080, 1440).rot, [540, 30]), 'si cae fuera, dentro');
+assert.deepStrictEqual(C.hitTest({ photo: sq90 }, 500, 540, null, 10), { kind: 'photo', handle: 'move' }, 'hit-test girado');
+assert.strictEqual(C.hitTest({ photo: sq90 }, 420, 450, null, 10), null, 'fuera del girado aunque dentro del original');
+assert.deepStrictEqual(C.hitTest({ photo: sq }, 500, 370, 'photo', 10, 30, 1080, 1440), { kind: 'photo', handle: 'rot' });
+const bb90 = C.bounds(sq90);
+assert.ok(near(bb90.w, 100) && near(bb90.h, 200) && near(bb90.x, 450) && near(bb90.y, 350));
+assert.deepStrictEqual(C.bounds(sq), sq, 'sin giro, la caja es el rect');
+assert.strictEqual(C.angleAt(sq, 600, 450), 90);
+assert.strictEqual(C.angleAt(sq, 500, 300), 0);
+assert.strictEqual(C.snapAngle(47, true), 45, 'imán cada 15°');
+assert.strictEqual(C.snapAngle(47, false), 47, 'Alt: sin imán');
+assert.strictEqual(C.snapAngle(40, true), 40, 'fuera de la tolerancia de 3°');
+assert.strictEqual(C.snapAngle(-1, true), 0);
+assert.strictEqual(C.snapAngle(359, true), 0);
+assert.strictEqual(C.dragBox('board', { ...rects.board, rot: 30 }, 'move', 10, 0, 1080, 1440).rot, 30, 'el giro se guarda en el override');
+assert.ok(!('rot' in C.dragBox('board', rects.board, 'move', 10, 0, 1080, 1440)), 'sin giro, override de 1.4.1');
+const rotSe = C.dragBox('photo', sq90, 'se', -50, 100, 1080, 1440); // girado 90°: el puntero se proyecta al eje local
+assert.ok(near(rotSe.w, 300) && near(rotSe.h, 150), 'redimensiona en ejes locales');
+assert.ok(nearP(C.handlesOf('photo', rotSe).nw, C.handlesOf('photo', sq90).nw), 'la esquina opuesta no se mueve');
+const rotFar = C.dragBox('photo', { x: 0, y: 0, w: 400, h: 100, rot: 90 }, 'move', 5000, 0, 1080, 1440);
+assert.ok(near(C.bounds(rotFar).x, 1020), 'clamp con la caja envolvente del girado');
+// Guías: centro de la diapositiva, márgenes y otros elementos.
+const LINES = { x: [540, 90, 990, 300], y: [720, 90, 1320] };
+const sm = C.snapDrag('board', rects.board, 'move', 133, 0, 1080, 1440, LINES, 8); // bordes 333/633/933: lejos de todo
+assert.deepStrictEqual(sm.guides, [], 'nada a menos de 8 px');
+const sc = C.snapDrag('board', rects.board, 'move', 45, 0, 1080, 1440, LINES, 8); // centro 545 → 540
+assert.deepStrictEqual(sc, { box: { x: 240, y: 500, size: 600 }, guides: [{ x: 540 }] });
+const sb = C.snapDrag('board', rects.board, 'move', 95, 0, 1080, 1440, LINES, 8); // borde izq. 295 → 300
+assert.strictEqual(sb.box.x, 300);
+const sy = C.snapDrag('board', rects.board, 'move', 0, -405, 1080, 1440, LINES, 8); // arriba 95 → 90
+assert.deepStrictEqual(sy.guides, [{ y: 90 }]);
+const sr = C.snapDrag('board', rects.board, 'se', 186, 186, 1080, 1440, LINES, 8); // borde der. 986 → 990
+assert.ok(near(sr.box.x + sr.box.size, 990) && sr.box.x === 200, 'redimensión: el borde que se mueve');
+const ss = C.snapDrag('text', rects.text, 'e', -6, 0, 1080, 1440, LINES, 8);
+assert.deepStrictEqual(ss.box, { x: 90, y: 400, w: 900, scale: 1 }, 'lado del texto al margen');
+// Historial por diapositiva.
+const hist = C.history(), l0 = { text: null }, l1 = { text: { x: 1 } }, l2 = { text: { x: 2 } };
+assert.strictEqual(C.record(hist, l0, l0), false, 'un gesto sin cambios no ocupa historial');
+assert.strictEqual(C.record(hist, l0, l1), true);
+C.record(hist, l1, l2);
+assert.deepStrictEqual(C.undo(hist, l2), l1);
+assert.deepStrictEqual(C.undo(hist, l1), l0);
+assert.strictEqual(C.undo(hist, l0), null);
+assert.deepStrictEqual(C.redo(hist, l0), l1);
+C.record(hist, l1, l0);
+assert.strictEqual(hist.redo.length, 0, 'un cambio nuevo borra el rehacer');
+const capped = C.history();
+for (let i = 0; i < 120; i++) C.record(capped, { n: i }, { n: i + 1 });
+assert.strictEqual(capped.undo.length, 100, 'tope de 100 pasos');
+// Número de diapositivas: el rol va con la posición.
+assert.strictEqual(C.MIN_SLIDES, 1);
+assert.strictEqual(C.MAX_SLIDES, 8);
+assert.strictEqual(C.roleOf(0), C.ROLES[0]);
+assert.strictEqual(C.roleOf(5), 'Diapositiva 6');
+assert.strictEqual(C.hintOf(4), C.HINTS[4]);
+assert.ok(C.hintOf(7));
+assert.strictEqual(C.fileName(7), 'carrusel-8.png');
+const blank = { text: ' ', accent: '', positionText: '', photo: null, layout: { text: null, accent: null, photo: null, board: null } };
+assert.strictEqual(C.isBlank(blank), true);
+assert.strictEqual(C.isBlank({ ...blank, accent: 'a' }), false);
+assert.strictEqual(C.isBlank({ ...blank, layout: { ...blank.layout, board: { x: 0, y: 0, size: 200 } } }), false);
+}
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 assert.strictEqual(finalFen(START), START);
 assert.strictEqual(finalFen('1. e4 e5'), 'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2'); // chess.js 1.x omite el al paso sin captura posible

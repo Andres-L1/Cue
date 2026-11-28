@@ -17,6 +17,10 @@
       </header>
 
       <nav id="tabs" class="tabs" aria-label="Diapositivas"></nav>
+      <div class="row">
+        <button id="addSlide" class="btn small" type="button">Añadir diapositiva</button>
+        <button id="removeSlide" class="btn small" type="button">Quitar diapositiva</button>
+      </div>
       <p id="hint" class="hint"></p>
 
       <fieldset id="controls">
@@ -38,8 +42,10 @@
           <p id="photoMsg" class="msg" role="status"></p>
         </div>
         <div class="row">
+          <button id="undo" class="btn small" type="button" disabled aria-label="Deshacer (Ctrl+Z)" title="Deshacer (Ctrl+Z)" aria-keyshortcuts="Control+Z Meta+Z">Deshacer</button>
+          <button id="redo" class="btn small" type="button" disabled aria-label="Rehacer (Ctrl+Mayús+Z o Ctrl+Y)" title="Rehacer (Ctrl+Mayús+Z o Ctrl+Y)" aria-keyshortcuts="Control+Shift+Z Control+Y Meta+Shift+Z">Rehacer</button>
           <button id="resetLayout" class="btn small" type="button" disabled>Restablecer diseño</button>
-          <p class="hint">Arrastra el texto, la frase, la foto o el tablero en la vista previa.</p>
+          <p class="hint">Arrastra el texto, la frase, la foto o el tablero en la vista previa: esquinas para escalar, círculo para girar. Las guías naranjas los alinean; Alt desactiva el imán. Ctrl+Z deshace y Ctrl+Mayús+Z rehace la disposición (quitar una foto no se deshace).</p>
         </div>
       </fieldset>
 
@@ -50,10 +56,21 @@
     </section>
 
     <section class="stage">
-      <canvas id="canvas" width="1080" height="1440" tabindex="0" aria-label="Vista previa de la diapositiva. Haz clic en un elemento para elegirlo; flechas para moverlo (Mayús, más rápido), Suprimir para devolverlo a su sitio automático, Escape para soltarlo."></canvas>
+      <canvas id="canvas" width="1080" height="1440" tabindex="0" aria-label="Vista previa de la diapositiva. Haz clic en un elemento para elegirlo; flechas para moverlo (Mayús, más rápido), Suprimir para devolverlo a su sitio automático, Escape para soltarlo, Control+Z para deshacer. Con el ratón, el círculo sobre el recuadro lo gira."></canvas>
       <div id="thumbs" class="thumbs"></div>
     </section>
   </main>
+
+  <dialog id="confirm" class="confirm" aria-labelledby="confirmTitle" aria-describedby="confirmText">
+    <form method="dialog">
+      <h2 id="confirmTitle">¿Quitar la diapositiva?</h2>
+      <p id="confirmText"></p>
+      <div class="row">
+        <button class="btn small" value="remove">Quitar</button>
+        <button class="btn small ghost" value="cancel" autofocus>Cancelar</button>
+      </div>
+    </form>
+  </dialog>
 
   <script src="logic.js"></script>
   <script src="app.js"></script>

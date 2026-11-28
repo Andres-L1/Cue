@@ -19,8 +19,8 @@ function setupIpc() {
   });
   ipcMain.handle('carousel:save', async (e, files) => {
     // Datos del renderer: se valida todo antes de abrir el selector para no dejar archivos a medias.
-    const valid = Array.isArray(files) && files.length > 0 && files.length <= 5 &&
-      files.every((f) => f && /^carrusel-[1-5]\.png$/.test(f.name) && f.data instanceof ArrayBuffer && f.data.byteLength > 0) &&
+    const valid = Array.isArray(files) && files.length > 0 && files.length <= 8 &&
+      files.every((f) => f && /^carrusel-[1-8]\.png$/.test(f.name) && f.data instanceof ArrayBuffer && f.data.byteLength > 0) &&
       new Set(files.map((f) => f.name)).size === files.length;
     if (!valid) return { ok: false, error: 'Las imágenes no son válidas. Vuelve a exportar.' };
     const { canceled, filePaths } = await dialog.showOpenDialog(BrowserWindow.fromWebContents(e.sender), {
