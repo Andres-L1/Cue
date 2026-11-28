@@ -3,6 +3,7 @@
 const tools = [
   { manifest: require('./teleprompter/manifest'), open: require('./teleprompter').open },
   { manifest: require('./board-video/manifest'), open: require('./board-video').open },
+  { manifest: require('./carousel/manifest'), open: require('./carousel').open },
 ];
 
 module.exports = {

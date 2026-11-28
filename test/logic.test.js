@@ -213,4 +213,10 @@ assert.strictEqual(finalFen('1. e4 e5'), 'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP
 assert.throws(() => finalFen('zzz'));
 assert.throws(() => finalFen(''));
 
+// Carrusel: datos del launcher (src/tools/index.js necesita Electron).
+const CM = require('../src/tools/carousel/manifest');
+assert.strictEqual(CM.id, 'carousel');
+assert.strictEqual(CM.features.length, 4);
+assert.ok(CM.preview.startsWith('<svg') && CM.icon.startsWith('<svg'));
+
 console.log('logic OK');
