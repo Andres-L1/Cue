@@ -37,6 +37,10 @@
           <input id="photo" type="file" accept="image/png,image/jpeg,image/webp" hidden>
           <p id="photoMsg" class="msg" role="status"></p>
         </div>
+        <div class="row">
+          <button id="resetLayout" class="btn small" type="button" disabled>Restablecer diseño</button>
+          <p class="hint">Arrastra el texto, la frase, la foto o el tablero en la vista previa.</p>
+        </div>
       </fieldset>
 
       <div class="row">
@@ -46,7 +50,7 @@
     </section>
 
     <section class="stage">
-      <canvas id="canvas" width="1080" height="1440"></canvas>
+      <canvas id="canvas" width="1080" height="1440" tabindex="0" aria-label="Vista previa de la diapositiva. Haz clic en un elemento para elegirlo; flechas para moverlo (Mayús, más rápido), Suprimir para devolverlo a su sitio automático, Escape para soltarlo."></canvas>
       <div id="thumbs" class="thumbs"></div>
     </section>
   </main>

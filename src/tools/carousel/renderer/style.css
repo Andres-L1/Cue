@@ -49,7 +49,8 @@ textarea[aria-invalid="true"] { border-color: #ff8a7a; }
 .hint { margin: 0; font-size: 13px; color: var(--muted); }
 
 .stage { display: grid; grid-template-rows: 1fr auto; justify-items: center; gap: 14px; min-height: 0; }
-#canvas { height: calc(100vh - 44px - 110px); width: auto; aspect-ratio: 3 / 4; border-radius: 16px; border: 1px solid var(--line); background: #0a0a0b; }
+#canvas { height: calc(100vh - 44px - 110px); width: auto; aspect-ratio: 3 / 4; border-radius: 16px; border: 1px solid var(--line); background: #0a0a0b; outline: none; touch-action: none; }
+#canvas:focus-visible { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(238,123,48,.18); }
 .thumbs { display: flex; gap: 10px; }
 .thumb { padding: 0; border: 2px solid var(--line); border-radius: 10px; overflow: hidden; cursor: pointer; background: #0a0a0b; line-height: 0; }
 .thumb canvas { width: 72px; height: 96px; display: block; }

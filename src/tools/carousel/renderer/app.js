@@ -15,9 +15,11 @@
 
   const slides = L.ROLES.map(() => ({
     text: '', textColor: 'white', accent: '', accentColor: 'red',
-    position: '', positionText: '', positionError: '', photo: null, photoName: '',
+    position: '', positionText: '', positionError: '', photo: null, photoName: '', layout: autoLayout(),
   }));
   let active = 0, ready = false;
+  let boxes = {}, selected = null, drag = null; // rects de la diapositiva activa, elemento elegido, arrastre en curso
+  function autoLayout() { return { text: null, accent: null, photo: null, board: null }; }
 
   // ---- dibujo ----
   function placement(fen) {
@@ -54,13 +56,13 @@
   }
 
   // Trazo rojo irregular bajo la frase destacada.
-  function underline(ctx, cx, y, width, color) {
+  function underline(ctx, cx, y, width, color, k) { // k: factor de tamaño de la frase
     const x0 = cx - width / 2, w = width;
     ctx.save();
-    ctx.strokeStyle = color; ctx.lineWidth = 9; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(x0, y + 2);
-    ctx.quadraticCurveTo(x0 + w * 0.25, y - 9, x0 + w * 0.5, y + 1);
-    ctx.quadraticCurveTo(x0 + w * 0.78, y + 11, x0 + w, y - 5);
+    ctx.strokeStyle = color; ctx.lineWidth = 9 * k; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x0, y + 2 * k);
+    ctx.quadraticCurveTo(x0 + w * 0.25, y - 9 * k, x0 + w * 0.5, y + 1 * k);
+    ctx.quadraticCurveTo(x0 + w * 0.78, y + 11 * k, x0 + w, y - 5 * k);
     ctx.stroke();
     ctx.restore();
   }
@@ -72,27 +74,34 @@
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   }
 
+  // Dibuja la diapositiva y devuelve los rects de sus elementos editables (para la vista previa).
+  // slide.layout[kind] = null → posición automática; si no, el override que devuelve L.dragBox.
   function drawSlide(ctx, slide, theme) {
     const { colors, fonts } = theme;
+    const lay = slide.layout, rects = {};
     ctx.save();
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillStyle = colors.black; ctx.fillRect(0, 0, W, H);
-    if (slide.photo) {
-      const { sx, sy, sw, sh } = L.coverRect(slide.photo.naturalWidth, slide.photo.naturalHeight, W, H);
-      ctx.drawImage(slide.photo, sx, sy, sw, sh, 0, 0, W, H);
-    } else {
+    if (!slide.photo || lay.photo) { // la viñeta se ve detrás de una foto movida
       const g = ctx.createRadialGradient(W / 2, H * 0.42, 80, W / 2, H * 0.42, 950);
       g.addColorStop(0, 'rgba(242,241,236,.07)'); g.addColorStop(1, 'rgba(242,241,236,0)');
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     }
+    if (slide.photo) {
+      const { sx, sy, sw, sh } = L.coverRect(slide.photo.naturalWidth, slide.photo.naturalHeight, W, H);
+      const p = rects.photo = lay.photo || { x: 0, y: 0, w: W, h: H };
+      ctx.drawImage(slide.photo, sx, sy, sw, sh, p.x, p.y, p.w, p.h);
+    }
 
-    // Medidas del texto
+    // Medidas del texto (la maqueta automática no depende de los overrides: mover uno no desplaza a los demás)
     const mainFont = (s) => `700 ${s}px ${fonts.main}`;
     const accentFont = (s) => `italic 400 ${s}px ${fonts.accent}`;
     const measure = (font) => (str, s) => { ctx.font = font(s); return ctx.measureText(str).width; };
     const none = { size: 0, lines: [] };
-    const main = slide.text.trim() ? L.fitText(slide.text, measure(mainFont), TEXT_W, MAIN_SIZES) : none;
-    const acc = slide.accent.trim() ? L.fitText(slide.accent, measure(accentFont), TEXT_W, ACCENT_SIZES) : none;
+    const fit = (str, font, sizes, box) => (str.trim() ? L.fitText(str, measure(font), box.w, sizes.map(([s, n]) => [s * box.scale, n])) : none);
+    const AUTO = { w: TEXT_W, scale: 1 };
+    const main = fit(slide.text, mainFont, MAIN_SIZES, AUTO);
+    const acc = fit(slide.accent, accentFont, ACCENT_SIZES, AUTO);
     const mainLH = main.size * 1.1, accLH = acc.size * 1.15;
     const red = acc.lines.length > 0 && slide.accentColor === 'red';
     const gap = main.lines.length && acc.lines.length ? 40 : 0;
@@ -104,25 +113,40 @@
     const boardH = size ? size * 1.052 : 0;
     const y0 = TOP + (BOTTOM - TOP - textH - (size ? boardGap + boardH : 0)) / 2;
 
+    // Cajas efectivas: el override o la posición automática.
+    const tb = lay.text || { x: (W - TEXT_W) / 2, y: y0, ...AUTO };
+    let ay = y0; // sumado línea a línea, como antes, para que el PNG automático sea idéntico al bit
+    for (let n = 0; n < main.lines.length; n++) ay += mainLH;
+    const ab = lay.accent || { x: (W - TEXT_W) / 2, y: ay + gap, ...AUTO };
+    const mainE = lay.text ? fit(slide.text, mainFont, MAIN_SIZES, tb) : main;
+    const accE = lay.accent ? fit(slide.accent, accentFont, ACCENT_SIZES, ab) : acc;
+    const mainLHE = mainE.size * 1.1, accLHE = accE.size * 1.15;
+    if (mainE.lines.length) rects.text = { ...tb, h: mainE.lines.length * mainLHE };
+    if (accE.lines.length) rects.accent = { ...ab, h: accE.lines.length * accLHE + (red ? 30 * ab.scale : 0) };
+    const bb = !slide.position ? null : lay.board || (size ? { x: (W - size) / 2, y: y0 + textH + boardGap + size * 0.026, size } : null);
+    if (bb) rects.board = { x: bb.x, y: bb.y, w: bb.size, h: bb.size };
+
     if (slide.photo) {
-      if (textH) shade(ctx, y0, y0 + textH);
+      if (lay.text || lay.accent) {
+        for (const r of [rects.text, rects.accent]) if (r) shade(ctx, r.y, r.y + r.h);
+      } else if (textH) shade(ctx, y0, y0 + textH);
       const g = ctx.createLinearGradient(0, H - 200, 0, H); // legibilidad del pie
       g.addColorStop(0, 'rgba(10,10,11,0)'); g.addColorStop(1, 'rgba(10,10,11,.7)');
       ctx.fillStyle = g; ctx.fillRect(0, H - 200, W, 200);
     }
 
-    let y = y0;
-    ctx.font = mainFont(main.size); ctx.fillStyle = colors[slide.textColor];
-    for (const line of main.lines) { ctx.fillText(line, W / 2, y + mainLH / 2, TEXT_W); y += mainLH; }
-    y += gap;
-    ctx.font = accentFont(acc.size); ctx.fillStyle = colors[slide.accentColor];
-    for (const line of acc.lines) { ctx.fillText(line, W / 2, y + accLH / 2, TEXT_W); y += accLH; }
+    let y = tb.y;
+    ctx.font = mainFont(mainE.size); ctx.fillStyle = colors[slide.textColor];
+    for (const line of mainE.lines) { ctx.fillText(line, tb.x + tb.w / 2, y + mainLHE / 2, tb.w); y += mainLHE; }
+    y = ab.y;
+    ctx.font = accentFont(accE.size); ctx.fillStyle = colors[slide.accentColor];
+    for (const line of accE.lines) { ctx.fillText(line, ab.x + ab.w / 2, y + accLHE / 2, ab.w); y += accLHE; }
     if (red) {
-      const last = acc.lines[acc.lines.length - 1];
-      underline(ctx, W / 2, y + 8, Math.min(TEXT_W, ctx.measureText(last).width + 20), colors.red);
+      const last = accE.lines[accE.lines.length - 1];
+      underline(ctx, ab.x + ab.w / 2, y + 8 * ab.scale, Math.min(ab.w, ctx.measureText(last).width + 20 * ab.scale), colors.red, ab.scale);
     }
 
-    if (size) drawBoard(ctx, slide.position, (W - size) / 2, y0 + textH + boardGap + size * 0.026, size);
+    if (bb) drawBoard(ctx, slide.position, bb.x, bb.y, bb.size);
 
     // Pie «chedex.app»
     ctx.font = `700 28px ${fonts.main}`;
@@ -131,6 +155,7 @@
     ctx.fillStyle = colors.white; ctx.fillText('chedex', x, 1380);
     ctx.fillStyle = colors.orange; ctx.fillText('.app', x + a, 1380);
     ctx.restore();
+    return rects;
   }
 
   // ---- interfaz ----
@@ -169,11 +194,28 @@
     }
   }
 
+  // La selección se pinta después de copiar la miniatura: nunca llega a miniaturas ni al PNG.
   function render(i) {
     if (!ready) return;
-    drawSlide(ctx, slides[i], THEME);
+    boxes = drawSlide(ctx, slides[i], THEME);
     thumbs[i].getContext('2d').drawImage(canvas, 0, 0, thumbs[i].width, thumbs[i].height);
-    if (i !== active) drawSlide(ctx, slides[active], THEME);
+    if (i !== active) boxes = drawSlide(ctx, slides[active], THEME);
+    drawSelection();
+    $('resetLayout').disabled = !Object.values(slides[active].layout).some(Boolean);
+  }
+
+  const px = () => W / canvas.clientWidth; // px de diapositiva por px de pantalla
+  function drawSelection() {
+    const r = selected && boxes[selected];
+    if (!r) return;
+    const k = px(), s = 12 * k;
+    ctx.save();
+    ctx.lineWidth = 2 * k; ctx.strokeStyle = THEME.colors.orange; ctx.strokeRect(r.x, r.y, r.w, r.h);
+    ctx.fillStyle = THEME.colors.white;
+    for (const [hx, hy] of Object.values(L.handlesOf(selected, r))) {
+      ctx.fillRect(hx - s / 2, hy - s / 2, s, s); ctx.strokeRect(hx - s / 2, hy - s / 2, s, s);
+    }
+    ctx.restore();
   }
   function renderAll() { slides.forEach((_, i) => render(i)); }
 
@@ -196,7 +238,7 @@
   }
 
   function select(i) {
-    active = i;
+    active = i; selected = null; drag = null;
     const s = slides[i];
     tabs.forEach((t, k) => t.setAttribute('aria-selected', String(k === i)));
     thumbs.forEach((c, k) => c.parentElement.setAttribute('aria-current', String(k === i)));
@@ -231,7 +273,7 @@
 
   $('photoBtn').addEventListener('click', () => $('photo').click());
   $('removePhoto').addEventListener('click', () => {
-    slides[active].photo = null; slides[active].photoName = '';
+    slides[active].photo = null; slides[active].photoName = ''; slides[active].layout.photo = null;
     syncPhoto(); render(active);
   });
   $('photo').addEventListener('change', () => {
@@ -286,6 +328,54 @@
     }
   }
   $('export').addEventListener('click', exportAll);
+
+  // ---- edición libre en la vista previa ----
+  const CURSORS = { move: 'move', nw: 'nwse-resize', se: 'nwse-resize', ne: 'nesw-resize', sw: 'nesw-resize', w: 'ew-resize', e: 'ew-resize' };
+  function point(e) {
+    const r = canvas.getBoundingClientRect(), k = px();
+    return [(e.clientX - r.left - canvas.clientLeft) * k, (e.clientY - r.top - canvas.clientTop) * k];
+  }
+  const hit = (e) => { const [x, y] = point(e); return L.hitTest(boxes, x, y, selected, 10 * px()); };
+
+  canvas.addEventListener('pointerdown', (e) => {
+    if (!ready || e.button !== 0) return;
+    const h = hit(e);
+    selected = h ? h.kind : null;
+    if (h) {
+      drag = { ...h, start: point(e), rect: { ...boxes[h.kind] }, moved: false };
+      canvas.setPointerCapture(e.pointerId);
+    }
+    render(active);
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (drag && !(e.buttons & 1)) drag = null; // se soltó sin que llegara pointerup (p. ej. fuera de la ventana)
+    if (!drag) { const h = ready && hit(e); canvas.style.cursor = h ? CURSORS[h.handle] : ''; return; }
+    const [x, y] = point(e), dx = x - drag.start[0], dy = y - drag.start[1];
+    if (!drag.moved && Math.hypot(dx, dy) < 2) return; // un clic solo selecciona: no crea override
+    drag.moved = true;
+    slides[active].layout[drag.kind] = L.dragBox(drag.kind, drag.rect, drag.handle, dx, dy, W, H);
+    render(active);
+  });
+  const endDrag = () => { drag = null; };
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+  canvas.addEventListener('lostpointercapture', endDrag);
+
+  const STEP = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+  canvas.addEventListener('keydown', (e) => {
+    if (!selected) return;
+    const lay = slides[active].layout;
+    if (STEP[e.key] && boxes[selected]) {
+      const d = e.shiftKey ? 20 : 4;
+      lay[selected] = L.dragBox(selected, boxes[selected], 'move', STEP[e.key][0] * d, STEP[e.key][1] * d, W, H);
+    } else if (e.key === 'Delete' || e.key === 'Backspace') lay[selected] = null; // vuelve a automático: no borra contenido
+    else if (e.key === 'Escape') selected = null;
+    else return;
+    e.preventDefault();
+    render(active);
+  });
+
+  $('resetLayout').addEventListener('click', () => { slides[active].layout = autoLayout(); render(active); });
 
   // Fuentes y piezas cargadas antes del primer dibujo.
   select(0);

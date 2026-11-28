@@ -47,6 +47,15 @@ Una sola opción sensata: herramienta nueva que reutiliza el patrón de `board-v
 
 Cada diapositiva es un objeto `{ role, text, textColor, accent, accentColor, position, photo }`. Un único `drawSlide(ctx, slide, theme)` puro dibuja todo desde ese objeto, y las opciones (colores, fuentes) viven en un `theme` con listas. Personalizar más = añadir campos al objeto y ramas al dibujo, sin tocar la estructura.
 
+## 1.4.1 · Edición libre en la vista previa
+
+- Texto, frase, foto y tablero se seleccionan, arrastran y redimensionan en la vista previa; el pie `chedex.app` es fijo.
+- `slide.layout = { text, accent, photo, board }`: `null` = automático. Override: texto/frase `{x, y, w, scale}`, foto `{x, y, w, h}` (el recorte 3:4 de siempre, a escala), tablero `{x, y, size}`. Sin overrides, el PNG es idéntico al de 1.4.0.
+- La maqueta automática no depende de los overrides: mover un elemento no desplaza a los demás.
+- Límites: letra entre ×0,5 y ×3, anchos mínimos, y siempre quedan 60 px dentro de la diapositiva. El recuadro de selección se pinta después de copiar la miniatura: nunca llega a miniaturas ni al PNG.
+- Teclado (canvas enfocado): flechas 4 px (Mayús 20 px), Supr/Retroceso devuelve el elemento a automático (no borra contenido), Esc suelta. «Restablecer diseño» devuelve toda la diapositiva a automático.
+- Lógica pura (`hitTest`, `handlesOf`, `dragBox`) en `renderer/logic.js` con tests. Pendiente (1.4.2): guías, deshacer, rotación, orden de capas.
+
 ## Para el implementador
 
 - Registrar la herramienta en `src/tools/index.js` con su `manifest.js`, como `board-video`.
