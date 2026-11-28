@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- img-src data: para la foto elegida, que se lee con FileReader. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:">
+  <title>Chedex · Carrusel</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="wrap">
+    <section class="panel">
+      <header class="brand">
+        <img class="logo" src="../../../shared/logo.png" alt="">
+        <span class="wordmark">carrusel<em>cth</em></span>
+      </header>
+
+      <nav id="tabs" class="tabs" aria-label="Diapositivas"></nav>
+      <p id="hint" class="hint"></p>
+
+      <fieldset id="controls">
+        <label class="field"><span>Texto principal</span><textarea id="text" rows="4"></textarea></label>
+        <div id="textColor" class="swatches" role="group" aria-label="Color del texto principal"></div>
+
+        <label class="field"><span>Frase destacada</span><textarea id="accent" rows="2"></textarea></label>
+        <div id="accentColor" class="swatches" role="group" aria-label="Color de la frase destacada"></div>
+
+        <label class="field"><span>Posición (FEN o PGN, opcional)</span>
+          <textarea id="position" class="mono" rows="3" spellcheck="false" aria-describedby="posMsg"></textarea>
+        </label>
+        <p id="posMsg" class="msg error" role="status"></p>
+
+        <div class="row">
+          <button id="photoBtn" class="btn small" type="button">Foto</button>
+          <button id="removePhoto" class="btn small" type="button" hidden>Quitar foto</button>
+          <input id="photo" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+          <p id="photoMsg" class="msg" role="status"></p>
+        </div>
+      </fieldset>
+
+      <div class="row">
+        <button id="export" class="btn" type="button" disabled>Exportar 5 imágenes <span class="arrow">↗</span></button>
+        <p id="msg" class="msg" role="status"></p>
+      </div>
+    </section>
+
+    <section class="stage">
+      <canvas id="canvas" width="1080" height="1440"></canvas>
+      <div id="thumbs" class="thumbs"></div>
+    </section>
+  </main>
+
+  <script src="logic.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
